@@ -6,6 +6,7 @@ import { RouteError } from '@/components/ErrorBoundary';
 // Route-based code splitting: every page is its own chunk.
 const HomePage = lazy(() => import('@/pages/HomePage'));
 const DiscoverPage = lazy(() => import('@/pages/DiscoverPage'));
+const ChartsPage = lazy(() => import('@/pages/ChartsPage'));
 const MadeForYouPage = lazy(() => import('@/pages/MadeForYouPage'));
 const SearchPage = lazy(() => import('@/pages/SearchPage'));
 const SongPage = lazy(() => import('@/pages/SongPage'));
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'home', element: <Navigate to="/" replace /> },
       { path: 'discover', element: <DiscoverPage /> },
+      { path: 'charts', element: <ChartsPage /> },
       { path: 'made-for-you', element: <MadeForYouPage /> },
       { path: 'search', element: <SearchPage /> },
       { path: 'search/:query', element: <SearchPage /> },

@@ -21,6 +21,7 @@ const groups: Array<{ label: string; items: Array<{ to: string; label: string; i
     items: [
       { to: '/', label: 'Home', icon: HomeIcon },
       { to: '/discover', label: 'Discover', icon: CompassIcon },
+      { to: '/charts', label: 'Charts', icon: WaveIcon },
       { to: '/made-for-you', label: 'Made For You', icon: SparkleIcon },
       { to: '/search', label: 'Search', icon: SearchIcon },
     ],

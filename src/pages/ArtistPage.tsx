@@ -1,26 +1,33 @@
 import { useParams } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { useArtist, useArtistTopSongs } from '@/features/artists/useArtist';
+import { useArtist, useInfiniteArtistSongs } from '@/features/artists/useArtist';
 import { usePlayerStore } from '@/store/playerStore';
 import { SongRow } from '@/components/SongRow';
 import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
 import { HeaderSkeleton, ListSkeleton } from '@/components/Skeletons';
 import { ErrorState } from '@/components/States';
+import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { PlayIcon } from '@/components/Icons';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
 
 export default function ArtistPage() {
   const { id } = useParams();
   const { data: artist, isLoading, isError, refetch } = useArtist(id);
-  const topSongs = useArtistTopSongs(id);
+  const topSongs = useInfiniteArtistSongs(id);
   const playQueue = usePlayerStore((s) => s.playQueue);
   usePageTitle(artist?.name);
 
   if (isLoading) return <div className="max-w-4xl mx-auto"><HeaderSkeleton /><ListSkeleton /></div>;
   if (isError || !artist) return <ErrorState retry={() => refetch()} />;
 
-  const songs = topSongs.data?.length ? topSongs.data : artist.topSongs;
+  const paged = topSongs.data?.pages.flat() ?? [];
+  const seen = new Set<string>();
+  const songs = (paged.length ? paged : artist.topSongs).filter((s) => {
+    if (seen.has(s.id)) return false;
+    seen.add(s.id);
+    return true;
+  });
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -39,8 +46,14 @@ export default function ArtistPage() {
 
       {songs.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-lg font-bold mb-2">Top Songs</h2>
-          {songs.slice(0, 15).map((song, i) => <SongRow key={song.id} song={song} songs={songs} index={i} />)}
+          <h2 className="text-lg font-bold mb-1">Songs</h2>
+          <p className="text-xs text-ink-400 mb-2">Sorted by popularity — scroll for the full catalog</p>
+          {songs.map((song, i) => <SongRow key={song.id} song={song} songs={songs} index={i} />)}
+          <InfiniteSentinel
+            onVisible={() => topSongs.hasNextPage && !topSongs.isFetchingNextPage && topSongs.fetchNextPage()}
+            disabled={!topSongs.hasNextPage}
+            loading={topSongs.isFetchingNextPage}
+          />
         </section>
       )}
       {topSongs.isLoading && songs.length === 0 && <ListSkeleton />}

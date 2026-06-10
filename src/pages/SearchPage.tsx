@@ -7,7 +7,8 @@ import { MediaCard } from '@/components/MediaCard';
 import { Chip } from '@/components/Chip';
 import { ListSkeleton } from '@/components/Skeletons';
 import { EmptyState, ErrorState } from '@/components/States';
-import { SearchIcon, XIcon } from '@/components/Icons';
+import { InfiniteSentinel } from '@/components/InfiniteSentinel';
+import { PlayIcon, SearchIcon, XIcon } from '@/components/Icons';
 import {
   normalizeQuery,
   rankSongs,
@@ -15,27 +16,42 @@ import {
   useSearchAll,
   useSearchArtists,
   useSearchPlaylists,
-  useSearchSongs,
 } from '@/features/search/useSearch';
+import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { useSearchStore } from '@/store/searchStore';
-import { bestImage } from '@/utils/images';
+import { usePlayerStore } from '@/store/playerStore';
+import { bestImage, FALLBACK_ART } from '@/utils/images';
 
 const TABS = ['All', 'Songs', 'Albums', 'Artists', 'Playlists'] as const;
 type Tab = (typeof TABS)[number];
+
+interface SpeechRecognitionLike {
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onend: (() => void) | null;
+}
+
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
+  const w = window as unknown as Record<string, unknown>;
+  return (w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null) as (new () => SpeechRecognitionLike) | null;
+}
 
 export default function SearchPage() {
   const { query: routeQuery } = useParams();
   const navigate = useNavigate();
   const [input, setInput] = useState(routeQuery ?? '');
   const [tab, setTab] = useState<Tab>('All');
+  const [listening, setListening] = useState(false);
   const debounced = useDebouncedValue(input, 350);
   const q = normalizeQuery(debounced);
   usePageTitle(q ? `“${q}”` : 'Search');
 
   const recent = useSearchStore((s) => s.recent);
   const { addRecent, removeRecent, clearRecent } = useSearchStore.getState();
+  const playQueue = usePlayerStore((s) => s.playQueue);
 
-  // Keep URL shareable: /search/:query mirrors the debounced input.
   useEffect(() => {
     if (q.length > 1 && q !== routeQuery) {
       navigate(`/search/${encodeURIComponent(q)}`, { replace: true });
@@ -49,13 +65,29 @@ export default function SearchPage() {
   }, [routeQuery]);
 
   const all = useSearchAll(q);
-  const songs = useSearchSongs(q, tab === 'Songs');
+  const infiniteSongs = useInfiniteSongs(q, tab === 'Songs');
   const albums = useSearchAlbums(q, tab === 'Albums');
   const artists = useSearchArtists(q, tab === 'Artists');
   const playlists = useSearchPlaylists(q, tab === 'Playlists');
 
   const active = q.length > 1;
   const rankedAllSongs = all.data ? rankSongs(all.data.songs) : [];
+  const topResult = rankedAllSongs[0];
+  const songList = flattenSongPages(infiniteSongs.data?.pages);
+  const SpeechRec = getSpeechRecognition();
+
+  const startVoice = () => {
+    if (!SpeechRec) return;
+    const rec = new SpeechRec();
+    rec.lang = navigator.language || 'en-IN';
+    rec.onresult = (e) => {
+      const transcript = e.results[0]?.[0]?.transcript;
+      if (transcript) setInput(transcript);
+    };
+    rec.onend = () => setListening(false);
+    setListening(true);
+    rec.start();
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -67,13 +99,27 @@ export default function SearchPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Songs, albums, artists, playlists…"
-          className="w-full bg-ink-800 border border-ink-600 rounded-2xl pl-12 pr-10 py-3.5 text-sm outline-none focus:border-ember-500"
+          className="w-full bg-ink-800 border border-ink-600 rounded-2xl pl-12 pr-20 py-3.5 text-sm outline-none focus:border-ember-500"
         />
-        {input && (
-          <button aria-label="Clear" onClick={() => setInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-ink-400 hover:text-ink-100">
-            <XIcon className="w-4 h-4" />
-          </button>
-        )}
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          {input && (
+            <button aria-label="Clear" onClick={() => setInput('')} className="p-1.5 text-ink-400 hover:text-ink-100">
+              <XIcon className="w-4 h-4" />
+            </button>
+          )}
+          {SpeechRec && (
+            <button
+              aria-label="Voice search"
+              onClick={startVoice}
+              className={listening ? 'p-1.5 text-ember-400 animate-pulse' : 'p-1.5 text-ink-400 hover:text-ink-100'}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="w-4 h-4">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 10a7 7 0 0014 0M12 17v5" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {!active && (
@@ -96,7 +142,7 @@ export default function SearchPage() {
               </div>
             </>
           ) : (
-            <EmptyState title="Find your next favorite" message="Search across songs, albums, artists, and playlists. Results are ranked toward your languages." />
+            <EmptyState title="Find your next favorite" message="Search across songs, albums, artists, and playlists. Results rank toward your languages — scroll for unlimited results." />
           )}
         </div>
       )}
@@ -115,12 +161,34 @@ export default function SearchPage() {
               {all.isError && <ErrorState retry={() => all.refetch()} />}
               {all.data && (
                 <div className="space-y-7">
-                  {rankedAllSongs.length > 0 && (
+                  {topResult && (
+                    <section>
+                      <h2 className="text-lg font-bold mb-2">Top Result</h2>
+                      <div className="rounded-2xl border border-ink-700 bg-ink-850/60 p-4 flex items-center gap-4">
+                        <img src={bestImage(topResult.images, 300)} onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK_ART)} alt="" className="w-20 h-20 rounded-xl object-cover shadow-lg" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-lg font-bold truncate">{topResult.title}</p>
+                          <p className="text-sm text-ink-300 truncate">{topResult.subtitle}</p>
+                        </div>
+                        <button
+                          onClick={() => playQueue(rankedAllSongs, 0)}
+                          aria-label={`Play ${topResult.title}`}
+                          className="w-12 h-12 rounded-full bg-ember-500 text-ink-950 flex items-center justify-center hover:bg-ember-400 shrink-0"
+                        >
+                          <PlayIcon className="w-5 h-5 ml-0.5" />
+                        </button>
+                      </div>
+                    </section>
+                  )}
+                  {rankedAllSongs.length > 1 && (
                     <section>
                       <h2 className="text-lg font-bold mb-2">Songs</h2>
-                      {rankedAllSongs.slice(0, 8).map((song, i) => (
-                        <SongRow key={song.id} song={song} songs={rankedAllSongs} index={i} />
+                      {rankedAllSongs.slice(1, 8).map((song, i) => (
+                        <SongRow key={song.id} song={song} songs={rankedAllSongs} index={i + 1} />
                       ))}
+                      <button onClick={() => setTab('Songs')} className="mt-2 text-xs font-semibold text-ember-400 px-2">
+                        See all songs (endless) →
+                      </button>
                     </section>
                   )}
                   {all.data.albums.length > 0 && (
@@ -162,9 +230,18 @@ export default function SearchPage() {
           )}
 
           {tab === 'Songs' && (
-            songs.isLoading ? <ListSkeleton /> : songs.isError ? <ErrorState retry={() => songs.refetch()} /> : (
-              <div>{(songs.data ?? []).map((song, i) => <SongRow key={song.id} song={song} songs={songs.data} index={i} />)}</div>
-            )
+            <>
+              {infiniteSongs.isLoading && <ListSkeleton />}
+              {infiniteSongs.isError && <ErrorState retry={() => infiniteSongs.refetch()} />}
+              {songList.map((song, i) => (
+                <SongRow key={song.id} song={song} songs={songList} index={i} />
+              ))}
+              <InfiniteSentinel
+                onVisible={() => infiniteSongs.hasNextPage && !infiniteSongs.isFetchingNextPage && infiniteSongs.fetchNextPage()}
+                disabled={!infiniteSongs.hasNextPage}
+                loading={infiniteSongs.isFetchingNextPage}
+              />
+            </>
           )}
           {tab === 'Albums' && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">

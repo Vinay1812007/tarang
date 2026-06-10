@@ -34,6 +34,20 @@ export function searchSongs(query: string, limit = 25): Promise<Song[]> {
   });
 }
 
+/** Paged song search — powers infinite scroll. Page is 1-based. */
+export function searchSongsPage(query: string, page: number, limit = 25): Promise<Song[]> {
+  return orchestratedRequest({
+    paths: [
+      `/search/songs?query=${enc(query)}&page=${page}&limit=${limit}`,
+      `/search/songs?query=${enc(query)}&p=${page}&limit=${limit}`,
+    ],
+    validate: (json) => {
+      const list = listFrom(unwrap(json));
+      return list ? normalizeSongList(list) : null;
+    },
+  });
+}
+
 export function searchAlbums(query: string, limit = 20): Promise<Album[]> {
   return orchestratedRequest({
     paths: [`/search/albums?query=${enc(query)}&limit=${limit}`],

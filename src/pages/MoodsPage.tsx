@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { MOODS } from '@/constants/seeds';
-import { useMoodSongs } from '@/features/discover/useDiscover';
+import { MOODS, moodSeed } from '@/constants/seeds';
+import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { useSettingsStore } from '@/store/settingsStore';
 import { SongRow } from '@/components/SongRow';
 import { ListSkeleton } from '@/components/Skeletons';
 import { ErrorState } from '@/components/States';
+import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { cn } from '@/utils/cn';
 import { usePlayerStore } from '@/store/playerStore';
 import { PlayIcon } from '@/components/Icons';
@@ -14,7 +15,8 @@ export default function MoodsPage() {
   usePageTitle('Moods');
   const [mood, setMood] = useState<string | null>(null);
   const lang = useSettingsStore((s) => s.pinnedLanguages[0] ?? null);
-  const songs = useMoodSongs(mood ?? '', lang);
+  const query = useInfiniteSongs(mood ? moodSeed(mood, lang) : '', !!mood);
+  const songs = flattenSongPages(query.data?.pages);
   const playQueue = usePlayerStore((s) => s.playQueue);
 
   return (
@@ -39,15 +41,22 @@ export default function MoodsPage() {
         <>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold">{MOODS.find((m) => m.id === mood)?.label} picks</h2>
-            {songs.data && songs.data.length > 0 && (
-              <button onClick={() => playQueue(songs.data!, 0)} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-ember-500 text-ink-950 text-xs font-bold">
+            {songs.length > 0 && (
+              <button onClick={() => playQueue(songs, 0)} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-ember-500 text-ink-950 text-xs font-bold">
                 <PlayIcon className="w-3.5 h-3.5" /> Play all
               </button>
             )}
           </div>
-          {songs.isLoading && <ListSkeleton />}
-          {songs.isError && <ErrorState retry={() => songs.refetch()} />}
-          {(songs.data ?? []).map((song, i) => <SongRow key={song.id} song={song} songs={songs.data} index={i} />)}
+          {query.isLoading && <ListSkeleton />}
+          {query.isError && <ErrorState retry={() => query.refetch()} />}
+          {songs.map((song, i) => <SongRow key={song.id} song={song} songs={songs} index={i} />)}
+          {!query.isLoading && !query.isError && (
+            <InfiniteSentinel
+              onVisible={() => query.hasNextPage && !query.isFetchingNextPage && query.fetchNextPage()}
+              disabled={!query.hasNextPage}
+              loading={query.isFetchingNextPage}
+            />
+          )}
         </>
       )}
     </div>
