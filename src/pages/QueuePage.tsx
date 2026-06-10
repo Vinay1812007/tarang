@@ -4,13 +4,13 @@ import { EmptyState } from '@/components/States';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
 import { formatDuration } from '@/utils/format';
 import { cn } from '@/utils/cn';
-import { XIcon } from '@/components/Icons';
+import { ChevronDownIcon, XIcon } from '@/components/Icons';
 
 export default function QueuePage() {
   usePageTitle('Queue');
   const queue = usePlayerStore((s) => s.queue);
   const index = usePlayerStore((s) => s.index);
-  const { playAt, removeAt, clearQueue } = usePlayerStore.getState();
+  const { playAt, removeAt, clearQueue, moveInQueue } = usePlayerStore.getState();
   const current = useCurrentSong();
 
   return (
@@ -32,9 +32,9 @@ export default function QueuePage() {
         queue.map((song, i) => (
           <div
             key={`${song.id}-${i}`}
-            className={cn('group flex items-center gap-3 px-2 py-2 rounded-xl', i === index ? 'bg-ink-800' : 'hover:bg-ink-850')}
+            className={cn('group flex items-center gap-2 px-2 py-2 rounded-xl', i === index ? 'bg-ink-800' : 'hover:bg-ink-850')}
           >
-            <span className="w-6 text-center text-xs text-ink-400 tabular-nums">{i + 1}</span>
+            <span className="w-6 text-center text-xs text-ink-400 tabular-nums shrink-0">{i + 1}</span>
             <button onClick={() => playAt(i)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
               <img src={bestImage(song.images, 150)} onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK_ART)} alt="" className="w-10 h-10 rounded-lg object-cover" />
               <span className="min-w-0">
@@ -42,10 +42,28 @@ export default function QueuePage() {
                 <span className="block text-xs text-ink-300 truncate">{song.subtitle}</span>
               </span>
             </button>
-            <span className="text-xs tabular-nums text-ink-400">{formatDuration(song.duration)}</span>
-            <button aria-label={`Remove ${song.title}`} onClick={() => removeAt(i)} className="p-2 text-ink-400 hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-              <XIcon className="w-4 h-4" />
-            </button>
+            <span className="hidden sm:block text-xs tabular-nums text-ink-400 shrink-0">{formatDuration(song.duration)}</span>
+            <div className="flex items-center shrink-0">
+              <button
+                aria-label={`Move ${song.title} up`}
+                disabled={i === 0}
+                onClick={() => moveInQueue(i, i - 1)}
+                className="p-1.5 text-ink-400 hover:text-ink-100 disabled:opacity-30 rotate-180"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button
+                aria-label={`Move ${song.title} down`}
+                disabled={i === queue.length - 1}
+                onClick={() => moveInQueue(i, i + 1)}
+                className="p-1.5 text-ink-400 hover:text-ink-100 disabled:opacity-30"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button aria-label={`Remove ${song.title}`} onClick={() => removeAt(i)} className="p-1.5 text-ink-400 hover:text-red-400">
+                <XIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ))
       )}

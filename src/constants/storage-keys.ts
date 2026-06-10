@@ -10,6 +10,7 @@ export const KEYS = {
   search: `${STORAGE_PREFIX}.search.v1`,
   profile: `${STORAGE_PREFIX}.profile.v1`,
   region: `${STORAGE_PREFIX}.region.v1`,
+  onboarded: `${STORAGE_PREFIX}.onboarded.v1`,
 } as const;
 
 export const CURRENT_SCHEMA_VERSION = 1;

@@ -13,6 +13,7 @@ export interface TasteInsights {
   totals: { plays: number; completes: number; skips: number; favorites: number; queueAdds: number };
   completionRate: number | null;
   confidence: number;
+  listeningMinutes: number;
   recentTrend: Array<{ day: string; plays: number }>;
 }
 
@@ -47,6 +48,12 @@ async function compute(): Promise<TasteInsights> {
     });
   }
 
+  let listeningSeconds = 0;
+  for (const e of events) {
+    if (e.type === 'complete') listeningSeconds += e.songDuration ?? e.playedSec ?? 0;
+    else if (e.type === 'skip') listeningSeconds += e.playedSec ?? 0;
+  }
+
   const { completes, skips } = profile.totals;
   return {
     topLanguages: topLanguages(profile, 6).map(({ id, affinity }) => ({
@@ -65,6 +72,7 @@ async function compute(): Promise<TasteInsights> {
     totals: profile.totals,
     completionRate: completes + skips > 0 ? completes / (completes + skips) : null,
     confidence: profileConfidence(profile),
+    listeningMinutes: Math.round(listeningSeconds / 60),
     recentTrend,
   };
 }

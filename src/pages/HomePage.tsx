@@ -17,6 +17,7 @@ import { useRegion } from '@/features/location/useRegion';
 import { bestImage } from '@/utils/images';
 import { languageLabel } from '@/constants/languages';
 import { dayPartLabel } from '@/utils/time';
+import { trendingSeed } from '@/constants/seeds';
 import type { Song } from '@/types';
 
 function SongShelf({ title, explanation, songs, seeAllTo }: { title: string; explanation?: string; songs: Song[]; seeAllTo?: string }) {
@@ -71,6 +72,7 @@ export default function HomePage() {
               <Chip active>{languageLabel(l)}</Chip>
             </Link>
           ))}
+          <Link to="/charts"><Chip>Charts</Chip></Link>
           <Link to="/moods"><Chip>Moods</Chip></Link>
           <Link to="/regions"><Chip>Regions</Chip></Link>
           <Link to="/made-for-you"><Chip>Made For You</Chip></Link>
@@ -91,7 +93,7 @@ export default function HomePage() {
           title={`Trending · ${languageLabel(primaryLang)}`}
           explanation={region?.country === 'IN' ? 'Popular in your region' : 'Trending in your languages'}
           songs={trending.data ?? []}
-          seeAllTo="/languages"
+          seeAllTo={`/search/${encodeURIComponent(trendingSeed(primaryLang))}`}
         />
       )}
 

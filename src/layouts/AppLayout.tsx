@@ -3,6 +3,8 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { BottomNav } from '@/components/BottomNav';
 import { PlayerBar } from '@/components/PlayerBar';
+import { Toasts } from '@/components/Toasts';
+import { OnboardingSheet } from '@/components/OnboardingSheet';
 import { PageSkeleton } from '@/components/Skeletons';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -12,6 +14,7 @@ import { runMigrations } from '@/services/storage/local';
 import { resolveRegion } from '@/services/location/inference';
 import { readBrowserSignals } from '@/services/location/browserSignals';
 import { defaultLanguagesForCountry } from '@/constants/regions';
+import { requestNotificationPermissionOnce } from '@/services/native';
 import { installDeterrence } from '@/utils/deterrence';
 
 export function AppLayout() {
@@ -23,6 +26,8 @@ export function AppLayout() {
     runMigrations();
     usePlayerStore.getState().initEngine();
     installDeterrence();
+    // Android 13+: media notification needs notification permission.
+    void requestNotificationPermissionOnce();
 
     const settings = useSettingsStore.getState();
     void resolveRegion({
@@ -31,7 +36,8 @@ export function AppLayout() {
       manualRegionLabel: settings.manualRegionLabel,
     }).then((region) => {
       useSettingsStore.getState().setInferredRegion(region);
-      // Cold start: seed language preferences from browser + country once.
+      // Cold start: seed language preferences from browser + country once
+      // (the onboarding sheet may have already pinned languages).
       const current = useSettingsStore.getState();
       if (current.pinnedLanguages.length === 0) {
         const fromBrowser = readBrowserSignals().languages;
@@ -59,7 +65,9 @@ export function AppLayout() {
           </ErrorBoundary>
         </main>
       </div>
-      <div className="fixed bottom-0 inset-x-0 z-40">
+      <Toasts />
+      <OnboardingSheet />
+      <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)] bg-ink-950/95">
         <PlayerBar />
         <BottomNav />
       </div>

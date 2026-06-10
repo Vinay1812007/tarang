@@ -103,9 +103,13 @@ export default function TasteProfilePage() {
           </Section>
 
           <Section title="Completion vs Skips" note="Low-skip listening strengthens recommendations for that language/artist.">
-            <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="rounded-xl bg-ink-800 p-3">
-                <p className="text-2xl font-bold text-tide-400">{data.totals.completes}</p>
+                <p className="text-2xl font-bold text-tide-400">{data.listeningMinutes >= 60 ? `${Math.floor(data.listeningMinutes / 60)}h ${data.listeningMinutes % 60}m` : `${data.listeningMinutes}m`}</p>
+                <p className="text-xs text-ink-400">listened (≈)</p>
+              </div>
+              <div className="rounded-xl bg-ink-800 p-3">
+                <p className="text-2xl font-bold">{data.totals.completes}</p>
                 <p className="text-xs text-ink-400">completed</p>
               </div>
               <div className="rounded-xl bg-ink-800 p-3">

@@ -6,6 +6,7 @@ import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
 import { ShelfSkeleton } from '@/components/Skeletons';
 import { useTrendingForLanguage } from '@/features/home/useHomeShelves';
+import { trendingSeed } from '@/constants/seeds';
 import { usePlayerStore } from '@/store/playerStore';
 import { bestImage } from '@/utils/images';
 
@@ -15,7 +16,7 @@ function LanguageShelf({ language }: { language: string }) {
   if (isLoading) return <ShelfSkeleton />;
   if (!data?.length) return null;
   return (
-    <Shelf title={`Trending · ${languageLabel(language)}`} explanation="Trending in your languages">
+    <Shelf title={`Trending · ${languageLabel(language)}`} explanation="Trending in your languages" seeAllTo={`/search/${encodeURIComponent(trendingSeed(language))}`}>
       {data.map((song, i) => (
         <MediaCard key={song.id} to={`/song/${song.id}`} image={bestImage(song.images)} title={song.title} subtitle={song.subtitle} onPlay={() => playQueue(data, i)} />
       ))}

@@ -8,6 +8,32 @@ A premium, <strong>no-login</strong> music streaming app — web (Cloudflare Pag
 
 ---
 
+
+## What's new in v1.1.0
+
+**Android-native playback**
+- Real media playback notification with play/pause/next/prev/seek (via `@jofr/capacitor-media-session` running a native MediaSessionService)
+- Bluetooth/headset buttons and audio focus handled natively
+- Notification permission requested once on app open (Android 13+); `buildapk.yml` patches the manifest with `POST_NOTIFICATIONS`, `WAKE_LOCK`, `FOREGROUND_SERVICE(_MEDIA_PLAYBACK)`
+- Haptic feedback on play/pause/skip (native only)
+
+**Real lyrics**
+- Synced lyrics from LRCLIB (open, keyless) with live line highlight, auto-follow, and tap-to-seek — in both the Now Playing lyrics panel and `/lyrics/:id`
+- Fallback chain: LRCLIB synced → LRCLIB plain → upstream catalog lyrics
+
+**Endless listening**
+- Infinite scroll on Search songs, Moods, Artist catalogs, and the new **/charts** page (per-language top charts)
+- "See all" shelf links now open endless seeded lists
+
+**Player upgrades**
+- Immersive full-screen Now Playing: blurred-artwork backdrop, dynamic accent color from the cover, fullscreen toggle, double-tap ±10s seek zones
+- Start Radio from any song (seed + similar autoqueue), smart shuffle (avoids session repeats), next-track audio preload, sleep "end of song" option, 2× speed
+
+**UI/UX pass**
+- Standardized `IconButton` (consistent hit areas/weights), compact mobile player bar with progress hairline, context menus flip upward near the bottom edge, safe-area insets, toast notifications, top-result card in search
+- First-run language onboarding sheet (cold-start personalization)
+- Voice search (Web Speech API, where supported), PWA install button, favorites sorting + shuffle-all, history grouped by day, queue reorder buttons, listening-time stat on Taste Profile
+
 ## Brand story
 
 *Tarang* (तरंग) means **wave**. The premise: a music service should feel personal without demanding an identity. There is no login, no signup, no OTP, no account — your taste profile is a small, transparent, time-decayed model that lives only on your device. The recommendations that feel like "AI" are deterministic local heuristics you can inspect on the **Taste Profile** page.

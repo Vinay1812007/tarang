@@ -1,16 +1,28 @@
+import { useEffect, useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { canInstall, onInstallAvailable, promptInstall } from '@/utils/installPrompt';
 import { API_BASES } from '@/constants/endpoints';
 
 export default function AboutPage() {
   usePageTitle('About');
+  const [installable, setInstallable] = useState(canInstall());
+  useEffect(() => onInstallAvailable(() => setInstallable(true)), []);
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
         <img src="/icons/icon.svg" alt="" className="w-16 h-16 rounded-2xl" />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tarang</h1>
-          <p className="text-sm text-ink-400">Waves of music, tuned to you · v1.0.0</p>
+          <p className="text-sm text-ink-400">Waves of music, tuned to you · v1.1.0</p>
         </div>
+        {installable && (
+          <button
+            onClick={() => void promptInstall().then((ok) => ok && setInstallable(false))}
+            className="ml-auto px-5 py-2.5 rounded-full bg-ember-500 text-ink-950 font-bold hover:bg-ember-400"
+          >
+            Install app
+          </button>
+        )}
       </div>
 
       <div className="space-y-5 text-sm text-ink-200 leading-relaxed">
