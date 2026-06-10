@@ -50,11 +50,16 @@ export default {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.4s linear infinite',
         'pulse-bar': 'pulse-bar 0.9s ease-in-out infinite',
         'fade-up': 'fade-up 0.25s ease-out both',
+        marquee: 'marquee 12s linear infinite',
       },
     },
   },
