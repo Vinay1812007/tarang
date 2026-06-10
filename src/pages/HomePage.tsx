@@ -1,0 +1,107 @@
+import { Link } from 'react-router-dom';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { Shelf } from '@/components/Shelf';
+import { MediaCard } from '@/components/MediaCard';
+import { ShelfSkeleton } from '@/components/Skeletons';
+import { Chip } from '@/components/Chip';
+import {
+  useContinueListening,
+  useTimeOfDayShelf,
+  useTrendingForLanguage,
+} from '@/features/home/useHomeShelves';
+import { useRecommendations } from '@/features/recommendations/useRecommendations';
+import { useSettingsStore } from '@/store/settingsStore';
+import { useLibraryStore } from '@/store/libraryStore';
+import { usePlayerStore } from '@/store/playerStore';
+import { useRegion } from '@/features/location/useRegion';
+import { bestImage } from '@/utils/images';
+import { languageLabel } from '@/constants/languages';
+import { dayPartLabel } from '@/utils/time';
+import type { Song } from '@/types';
+
+function SongShelf({ title, explanation, songs, seeAllTo }: { title: string; explanation?: string; songs: Song[]; seeAllTo?: string }) {
+  const playQueue = usePlayerStore((s) => s.playQueue);
+  if (!songs.length) return null;
+  return (
+    <Shelf title={title} explanation={explanation} seeAllTo={seeAllTo}>
+      {songs.map((song, i) => (
+        <MediaCard
+          key={song.id}
+          to={`/song/${song.id}`}
+          image={bestImage(song.images)}
+          title={song.title}
+          subtitle={song.subtitle}
+          onPlay={() => playQueue(songs, i)}
+        />
+      ))}
+    </Shelf>
+  );
+}
+
+function greeting(): string {
+  const part = dayPartLabel();
+  if (part === 'morning') return 'Good morning';
+  if (part === 'afternoon') return 'Good afternoon';
+  if (part === 'evening') return 'Good evening';
+  return 'Late night waves';
+}
+
+export default function HomePage() {
+  usePageTitle('Home');
+  const pinned = useSettingsStore((s) => s.pinnedLanguages);
+  const region = useRegion();
+  const continueListening = useContinueListening();
+  const favorites = useLibraryStore((s) => s.favorites);
+  const timeShelf = useTimeOfDayShelf();
+  const mixes = useRecommendations();
+  const primaryLang = pinned[0] ?? 'hindi';
+  const trending = useTrendingForLanguage(primaryLang);
+
+  return (
+    <div className="max-w-screen-2xl mx-auto">
+      {/* Hero */}
+      <div className="rounded-3xl bg-gradient-to-br from-ink-800 via-ink-850 to-ink-900 border border-ink-700 p-6 sm:p-8 mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{greeting()}</h1>
+        <p className="text-ink-300 mt-1 text-sm">
+          {region?.country ? `Tuned for ${region.country}` : 'Tuned to you'} · no account, all local
+        </p>
+        <div className="flex gap-2 mt-4 flex-wrap">
+          {pinned.map((l) => (
+            <Link key={l} to="/languages">
+              <Chip active>{languageLabel(l)}</Chip>
+            </Link>
+          ))}
+          <Link to="/moods"><Chip>Moods</Chip></Link>
+          <Link to="/regions"><Chip>Regions</Chip></Link>
+          <Link to="/made-for-you"><Chip>Made For You</Chip></Link>
+        </div>
+      </div>
+
+      <SongShelf title="Continue Listening" explanation="Pick up where you left off" songs={continueListening} seeAllTo="/history" />
+
+      {mixes.isLoading && <ShelfSkeleton />}
+      {mixes.data?.slice(0, 2).map((mix) => (
+        <SongShelf key={mix.id} title={mix.title} explanation={mix.explanation} songs={mix.songs} seeAllTo="/made-for-you" />
+      ))}
+
+      {trending.isLoading ? (
+        <ShelfSkeleton />
+      ) : (
+        <SongShelf
+          title={`Trending · ${languageLabel(primaryLang)}`}
+          explanation={region?.country === 'IN' ? 'Popular in your region' : 'Trending in your languages'}
+          songs={trending.data ?? []}
+          seeAllTo="/languages"
+        />
+      )}
+
+      {timeShelf.isLoading ? (
+        <ShelfSkeleton />
+      ) : (
+        <SongShelf title={timeShelf.title} explanation={`Based on your ${dayPartLabel()} sessions`} songs={timeShelf.data ?? []} />
+      )}
+
+      <SongShelf title="Recently Loved" explanation="Your latest favorites" songs={favorites.slice(0, 12)} seeAllTo="/favorites" />
+    </div>
+  );
+}
