@@ -1,5 +1,6 @@
 import type { Song } from '@/types';
 import { bestImage } from '@/utils/images';
+import { isNativePlatform } from '@/services/native';
 
 export interface MediaHandlers {
   play(): void;
@@ -9,10 +10,43 @@ export interface MediaHandlers {
   seekTo(seconds: number): void;
 }
 
-const supported = (): boolean => typeof navigator !== 'undefined' && 'mediaSession' in navigator;
+/**
+ * Two backends behind one façade:
+ *  - Web: the browser's Media Session API (lockscreen/hardware keys where the
+ *    browser supports it).
+ *  - Native (Capacitor Android): @jofr/capacitor-media-session, which runs a
+ *    real MediaSessionService → playback notification with controls, Bluetooth
+ *    /headset buttons, audio focus, and lockscreen seek bar.
+ */
+type NativePlugin = typeof import('@jofr/capacitor-media-session').MediaSession;
+
+const native = isNativePlatform();
+let pluginPromise: Promise<NativePlugin> | null = null;
+
+function plugin(): Promise<NativePlugin> {
+  if (!pluginPromise) {
+    pluginPromise = import('@jofr/capacitor-media-session').then((m) => m.MediaSession);
+  }
+  return pluginPromise;
+}
+
+const webSupported = (): boolean => typeof navigator !== 'undefined' && 'mediaSession' in navigator;
 
 export function setMediaHandlers(h: MediaHandlers): void {
-  if (!supported()) return;
+  if (native) {
+    void plugin().then(async (p) => {
+      await p.setActionHandler({ action: 'play' }, () => h.play());
+      await p.setActionHandler({ action: 'pause' }, () => h.pause());
+      await p.setActionHandler({ action: 'nexttrack' }, () => h.next());
+      await p.setActionHandler({ action: 'previoustrack' }, () => h.prev());
+      await p.setActionHandler({ action: 'seekto' }, (d) => {
+        if (d.seekTime != null) h.seekTo(d.seekTime);
+      });
+      await p.setActionHandler({ action: 'stop' }, () => h.pause());
+    }).catch(() => undefined);
+    return;
+  }
+  if (!webSupported()) return;
   const ms = navigator.mediaSession;
   try {
     ms.setActionHandler('play', () => h.play());
@@ -23,36 +57,59 @@ export function setMediaHandlers(h: MediaHandlers): void {
       if (e.seekTime != null) h.seekTo(e.seekTime);
     });
   } catch {
-    // Individual handlers may be unsupported per-browser — fine.
+    /* per-browser handler support varies */
   }
 }
 
 export function updateMediaMetadata(song: Song | null): void {
-  if (!supported()) return;
-  if (!song) {
-    navigator.mediaSession.metadata = null;
+  if (native) {
+    if (!song) return;
+    void plugin().then((p) =>
+      p.setMetadata({
+        title: song.title,
+        artist: song.subtitle,
+        album: song.album?.name ?? 'Tarang',
+        artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
+      }),
+    ).catch(() => undefined);
     return;
   }
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: song.title,
-    artist: song.subtitle,
-    album: song.album?.name ?? 'Tarang',
-    artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
-  });
+  if (!webSupported()) return;
+  navigator.mediaSession.metadata = song
+    ? new MediaMetadata({
+        title: song.title,
+        artist: song.subtitle,
+        album: song.album?.name ?? 'Tarang',
+        artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
+      })
+    : null;
 }
 
 export function updatePlaybackState(playing: boolean): void {
-  if (!supported()) return;
+  if (native) {
+    void plugin().then((p) => p.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })).catch(() => undefined);
+    return;
+  }
+  if (!webSupported()) return;
   navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
 }
 
+// Throttle native bridge calls: timeupdate fires ~4×/s, the notification
+// seek bar only needs ~1×/s.
+let lastSentPosition = -10;
+
 export function updatePositionState(duration: number, position: number, rate: number): void {
-  if (!supported() || !navigator.mediaSession.setPositionState) return;
+  if (!(duration > 0) || position > duration) return;
+  if (native) {
+    if (Math.abs(position - lastSentPosition) < 1) return;
+    lastSentPosition = position;
+    void plugin().then((p) => p.setPositionState({ duration, position, playbackRate: rate })).catch(() => undefined);
+    return;
+  }
+  if (!webSupported() || !navigator.mediaSession.setPositionState) return;
   try {
-    if (duration > 0 && position <= duration) {
-      navigator.mediaSession.setPositionState({ duration, position, playbackRate: rate });
-    }
+    navigator.mediaSession.setPositionState({ duration, position, playbackRate: rate });
   } catch {
-    /* ignore invalid transient states */
+    /* transient invalid states */
   }
 }
