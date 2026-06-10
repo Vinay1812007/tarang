@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Song } from '@/types';
 import { KEYS } from '@/constants/storage-keys';
-import { audioEngine } from '@/services/audio/engine';
+import { audioEngine, orderedSources } from '@/services/audio/engine';
 import {
   setMediaHandlers,
   updateMediaMetadata,
@@ -10,6 +10,8 @@ import {
   updatePositionState,
 } from '@/services/media-session';
 import { recordComplete, recordPlay, recordQueueAdd, recordSkip } from '@/services/personalization/updater';
+import { haptic } from '@/services/native';
+import { toast } from './toastStore';
 import { useHistoryStore } from './historyStore';
 import { useSettingsStore } from './settingsStore';
 
@@ -28,14 +30,17 @@ export interface PlayerState {
   muted: boolean;
   rate: number;
   sleepAt: number | null;
+  sleepAfterTrack: boolean;
 
   initEngine(): void;
   playQueue(songs: Song[], startIndex?: number): void;
   playSong(song: Song): void;
   playAt(index: number): void;
+  startRadio(song: Song): void;
   enqueue(song: Song): void;
   enqueueNext(song: Song): void;
   removeAt(index: number): void;
+  moveInQueue(from: number, to: number): void;
   clearQueue(): void;
   togglePlay(): void;
   next(manual?: boolean): void;
@@ -47,22 +52,36 @@ export interface PlayerState {
   cycleRepeat(): void;
   toggleShuffle(): void;
   setSleepTimer(minutes: number | null): void;
+  setSleepAfterTrack(v: boolean): void;
 }
 
 const SKIP_THRESHOLD = 0.3;
 let engineInitialized = false;
+/** Session-scoped played set: smart shuffle avoids repeats until exhausted. */
+const sessionPlayed = new Set<string>();
 
 export const usePlayerStore = create<PlayerState>()(
   persist(
     (set, get) => {
+      function preloadUpcoming(): void {
+        const { queue, index, shuffle } = get();
+        if (shuffle) return; // unknown next under shuffle
+        const next = queue[index + 1];
+        if (!next) return;
+        const url = orderedSources(next, useSettingsStore.getState().audioQuality)[0] ?? null;
+        audioEngine.preloadNext(url);
+      }
+
       function startTrack(song: Song, autoplay: boolean): void {
         const quality = useSettingsStore.getState().audioQuality;
         audioEngine.load(song, quality, autoplay);
         updateMediaMetadata(song);
         if (autoplay) {
+          sessionPlayed.add(song.id);
           recordPlay(song);
           useHistoryStore.getState().addPlay(song);
         }
+        preloadUpcoming();
       }
 
       function maybeRecordSkip(manual: boolean): void {
@@ -73,12 +92,7 @@ export const usePlayerStore = create<PlayerState>()(
         }
       }
 
-      async function autoqueueSimilar(): Promise<void> {
-        const { queue, index } = get();
-        const song = queue[index];
-        if (!song) return;
-        // Lazy imports keep the recommendation engine out of the player's
-        // critical path and avoid module cycles.
+      async function appendSimilar(seed: Song): Promise<boolean> {
         const [{ similarToSong }, { loadProfile }, { useLibraryStore }, { resolvedRegion }] =
           await Promise.all([
             import('@/services/recommendation/engine'),
@@ -87,7 +101,7 @@ export const usePlayerStore = create<PlayerState>()(
             import('./settingsStore'),
           ]);
         const settings = useSettingsStore.getState();
-        const scored = await similarToSong(song.id, {
+        const scored = await similarToSong(seed.id, {
           profile: loadProfile(),
           hour: new Date().getHours(),
           region: resolvedRegion(),
@@ -98,23 +112,22 @@ export const usePlayerStore = create<PlayerState>()(
           history: useHistoryStore.getState().entries,
         });
         const existing = new Set(get().queue.map((s) => s.id));
-        const fresh = scored.map((s) => s.candidate.song).filter((s) => !existing.has(s.id)).slice(0, 5);
-        if (fresh.length) {
-          set({ queue: [...get().queue, ...fresh] });
-          get().next(false);
-        }
+        const fresh = scored.map((s) => s.candidate.song).filter((s) => !existing.has(s.id)).slice(0, 6);
+        if (fresh.length) set({ queue: [...get().queue, ...fresh] });
+        return fresh.length > 0;
       }
 
       function handleEnded(): void {
-        const { queue, index, duration, repeat, sleepAt } = get();
+        const { queue, index, duration, repeat, sleepAt, sleepAfterTrack } = get();
         const song = queue[index];
         if (song) {
           recordComplete(song, duration);
           useHistoryStore.getState().markCompleted(song.id);
         }
-        if (sleepAt && Date.now() >= sleepAt) {
-          set({ sleepAt: null, isPlaying: false });
+        if (sleepAfterTrack || (sleepAt && Date.now() >= sleepAt)) {
+          set({ sleepAt: null, sleepAfterTrack: false, isPlaying: false });
           audioEngine.pause();
+          toast('Sleep timer: playback stopped');
           return;
         }
         if (repeat === 'one' && song) {
@@ -123,6 +136,16 @@ export const usePlayerStore = create<PlayerState>()(
           return;
         }
         get().next(false);
+      }
+
+      /** Smart shuffle: random among queue songs not yet played this session. */
+      function pickShuffleIndex(): number {
+        const { queue, index } = get();
+        const unplayed = queue
+          .map((s, i) => ({ s, i }))
+          .filter(({ s, i }) => i !== index && !sessionPlayed.has(s.id));
+        const pool = unplayed.length ? unplayed : queue.map((s, i) => ({ s, i })).filter(({ i }) => i !== index);
+        return pool[Math.floor(Math.random() * pool.length)]?.i ?? index;
       }
 
       return {
@@ -138,6 +161,7 @@ export const usePlayerStore = create<PlayerState>()(
         muted: false,
         rate: 1,
         sleepAt: null,
+        sleepAfterTrack: false,
 
         initEngine: () => {
           if (engineInitialized) return;
@@ -154,7 +178,7 @@ export const usePlayerStore = create<PlayerState>()(
             onBuffering: (isBuffering) => set({ isBuffering }),
             onEnded: handleEnded,
             onFatalError: () => {
-              // Every source for this song failed — move on rather than stall.
+              toast('Stream unavailable — skipping');
               if (get().queue.length > 1) get().next(false);
               else set({ isPlaying: false, isBuffering: false });
             },
@@ -178,9 +202,7 @@ export const usePlayerStore = create<PlayerState>()(
           startTrack(songs[startIndex], true);
         },
 
-        playSong: (song) => {
-          get().playQueue([song], 0);
-        },
+        playSong: (song) => get().playQueue([song], 0),
 
         playAt: (index) => {
           const { queue } = get();
@@ -190,11 +212,22 @@ export const usePlayerStore = create<PlayerState>()(
           startTrack(queue[index], true);
         },
 
+        startRadio: (song) => {
+          set({ queue: [song], index: 0, currentTime: 0, shuffle: false });
+          startTrack(song, true);
+          toast(`Radio started from “${song.title}”`);
+          void appendSimilar(song);
+        },
+
         enqueue: (song) => {
           const { queue } = get();
-          if (queue.some((s) => s.id === song.id)) return;
+          if (queue.some((s) => s.id === song.id)) {
+            toast('Already in queue');
+            return;
+          }
           recordQueueAdd(song);
           set({ queue: [...queue, song] });
+          toast('Added to queue');
           if (queue.length === 0) get().playQueue([song]);
         },
 
@@ -204,12 +237,29 @@ export const usePlayerStore = create<PlayerState>()(
           const filtered = queue.filter((s) => s.id !== song.id);
           const insertAt = Math.min(index + 1, filtered.length);
           set({ queue: [...filtered.slice(0, insertAt), song, ...filtered.slice(insertAt)] });
+          toast('Playing next');
         },
 
         removeAt: (i) => {
           const { queue, index } = get();
           const next = queue.filter((_, idx) => idx !== i);
-          set({ queue: next, index: i < index ? index - 1 : Math.min(index, Math.max(next.length - 1, 0)) });
+          set({
+            queue: next,
+            index: i < index ? index - 1 : Math.min(index, Math.max(next.length - 1, 0)),
+          });
+        },
+
+        moveInQueue: (from, to) => {
+          const { queue, index } = get();
+          if (from === to || from < 0 || to < 0 || from >= queue.length || to >= queue.length) return;
+          const next = [...queue];
+          const [item] = next.splice(from, 1);
+          next.splice(to, 0, item);
+          let newIndex = index;
+          if (index === from) newIndex = to;
+          else if (from < index && to >= index) newIndex = index - 1;
+          else if (from > index && to <= index) newIndex = index + 1;
+          set({ queue: next, index: newIndex });
         },
 
         clearQueue: () => {
@@ -221,8 +271,8 @@ export const usePlayerStore = create<PlayerState>()(
           const { isPlaying, queue, index } = get();
           const song = queue[index];
           if (!song) return;
+          haptic('light');
           if (audioEngine.currentSongId !== song.id) {
-            // Rehydrated queue: engine has nothing loaded yet.
             startTrack(song, true);
             return;
           }
@@ -233,12 +283,11 @@ export const usePlayerStore = create<PlayerState>()(
         next: (manual = false) => {
           const { queue, index, shuffle, repeat } = get();
           if (!queue.length) return;
+          if (manual) haptic('light');
           maybeRecordSkip(manual);
           let nextIndex: number;
           if (shuffle && queue.length > 1) {
-            do {
-              nextIndex = Math.floor(Math.random() * queue.length);
-            } while (nextIndex === index);
+            nextIndex = pickShuffleIndex();
           } else {
             nextIndex = index + 1;
           }
@@ -246,7 +295,14 @@ export const usePlayerStore = create<PlayerState>()(
             if (repeat === 'all') {
               nextIndex = 0;
             } else if (useSettingsStore.getState().autoqueueSimilar && !manual) {
-              void autoqueueSimilar();
+              const current = queue[index];
+              void appendSimilar(current).then((added) => {
+                if (added) get().next(false);
+                else {
+                  set({ isPlaying: false });
+                  audioEngine.pause();
+                }
+              });
               return;
             } else {
               set({ isPlaying: false });
@@ -261,6 +317,7 @@ export const usePlayerStore = create<PlayerState>()(
         prev: () => {
           const { queue, index, currentTime } = get();
           if (!queue.length) return;
+          haptic('light');
           if (currentTime > 3 || index === 0) {
             audioEngine.seek(0);
             return;
@@ -277,7 +334,7 @@ export const usePlayerStore = create<PlayerState>()(
         setVolume: (v) => {
           const volume = Math.min(1, Math.max(0, v));
           audioEngine.setVolume(volume);
-          set({ volume, muted: volume === 0 ? get().muted : false });
+          set({ volume });
           if (volume > 0) audioEngine.setMuted(false);
         },
 
@@ -300,8 +357,15 @@ export const usePlayerStore = create<PlayerState>()(
 
         toggleShuffle: () => set({ shuffle: !get().shuffle }),
 
-        setSleepTimer: (minutes) =>
-          set({ sleepAt: minutes == null ? null : Date.now() + minutes * 60_000 }),
+        setSleepTimer: (minutes) => {
+          set({ sleepAt: minutes == null ? null : Date.now() + minutes * 60_000, sleepAfterTrack: false });
+          if (minutes != null) toast(`Sleeping in ${minutes} min`);
+        },
+
+        setSleepAfterTrack: (v) => {
+          set({ sleepAfterTrack: v, sleepAt: null });
+          if (v) toast('Will stop after this song');
+        },
       };
     },
     {

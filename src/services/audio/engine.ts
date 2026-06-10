@@ -131,6 +131,22 @@ class AudioEngine {
     if (this.el) this.el.playbackRate = r;
   }
 
+  /**
+   * Prefetch the likely-next track's audio so track changes feel instant.
+   * Uses a detached, muted element — never plays, never fires callbacks.
+   */
+  private preloadEl: HTMLAudioElement | null = null;
+
+  preloadNext(url: string | null): void {
+    if (!url) return;
+    if (!this.preloadEl) {
+      this.preloadEl = new Audio();
+      this.preloadEl.muted = true;
+      this.preloadEl.preload = 'auto';
+    }
+    if (this.preloadEl.src !== url) this.preloadEl.src = url;
+  }
+
   destroy(): void {
     if (this.el) {
       this.el.pause();
