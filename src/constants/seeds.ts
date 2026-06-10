@@ -11,6 +11,13 @@ export function trendingSeed(language: string): string {
   return `top ${label} songs ${YEAR}`.replace(/\s+/g, ' ').trim();
 }
 
+/** Endless home-feed seed — phrased differently from trendingSeed so the
+ * feed doesn't mirror the Trending shelf. */
+export function feedSeed(language: string): string {
+  const label = language === 'unknown' ? '' : language;
+  return `${label} superhit songs`.trim();
+}
+
 export const MOODS = [
   { id: 'romance', label: 'Romance', emoji: '❤️', query: 'romantic hits' },
   { id: 'workout', label: 'Workout', emoji: '💪', query: 'workout gym motivation songs' },

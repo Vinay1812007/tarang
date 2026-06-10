@@ -2,7 +2,10 @@ import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
-import { ShelfSkeleton } from '@/components/Skeletons';
+import { ShelfSkeleton, ListSkeleton } from '@/components/Skeletons';
+import { SongRow } from '@/components/SongRow';
+import { InfiniteSentinel } from '@/components/InfiniteSentinel';
+import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { Chip } from '@/components/Chip';
 import {
   useContinueListening,
@@ -17,7 +20,7 @@ import { useRegion } from '@/features/location/useRegion';
 import { bestImage } from '@/utils/images';
 import { languageLabel } from '@/constants/languages';
 import { dayPartLabel } from '@/utils/time';
-import { trendingSeed } from '@/constants/seeds';
+import { feedSeed, trendingSeed } from '@/constants/seeds';
 import type { Song } from '@/types';
 
 function SongShelf({ title, explanation, songs, seeAllTo }: { title: string; explanation?: string; songs: Song[]; seeAllTo?: string }) {
@@ -57,6 +60,8 @@ export default function HomePage() {
   const mixes = useRecommendations();
   const primaryLang = pinned[0] ?? 'hindi';
   const trending = useTrendingForLanguage(primaryLang);
+  const feed = useInfiniteSongs(feedSeed(primaryLang));
+  const feedSongs = flattenSongPages(feed.data?.pages);
 
   return (
     <div className="max-w-screen-2xl mx-auto">
@@ -104,6 +109,28 @@ export default function HomePage() {
       )}
 
       <SongShelf title="Recently Loved" explanation="Your latest favorites" songs={favorites.slice(0, 12)} seeAllTo="/favorites" />
+
+      {/* Endless feed: keep scrolling to load more songs forever. */}
+      <section className="mt-2">
+        <h2 className="text-lg sm:text-xl font-bold tracking-tight">More For You</h2>
+        <p className="text-xs text-ink-400 mt-0.5 mb-3">
+          {languageLabel(primaryLang)} picks, ranked by your taste — keep scrolling
+        </p>
+        {feed.isLoading && <ListSkeleton />}
+        {feedSongs.map((song, i) => (
+          <SongRow key={song.id} song={song} songs={feedSongs} index={i} />
+        ))}
+        {!feed.isLoading && !feed.isError && (
+          <InfiniteSentinel
+            onVisible={() => feed.hasNextPage && !feed.isFetchingNextPage && feed.fetchNextPage()}
+            disabled={!feed.hasNextPage}
+            loading={feed.isFetchingNextPage}
+          />
+        )}
+        {feed.isError && feedSongs.length === 0 && (
+          <p className="text-sm text-ink-400 py-4">Feed unavailable right now — try again shortly.</p>
+        )}
+      </section>
     </div>
   );
 }
