@@ -3,7 +3,6 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
 import { ShelfSkeleton, ListSkeleton } from '@/components/Skeletons';
-import { SongRow } from '@/components/SongRow';
 import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { Chip } from '@/components/Chip';
@@ -60,6 +59,7 @@ export default function HomePage() {
   const mixes = useRecommendations();
   const primaryLang = pinned[0] ?? 'hindi';
   const trending = useTrendingForLanguage(primaryLang);
+  const playQueueFeed = usePlayerStore((s) => s.playQueue);
   const feed = useInfiniteSongs(feedSeed(primaryLang));
   const feedSongs = flattenSongPages(feed.data?.pages);
 
@@ -117,9 +117,19 @@ export default function HomePage() {
           {languageLabel(primaryLang)} picks, ranked by your taste — keep scrolling
         </p>
         {feed.isLoading && <ListSkeleton />}
-        {feedSongs.map((song, i) => (
-          <SongRow key={song.id} song={song} songs={feedSongs} index={i} />
-        ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
+          {feedSongs.map((song, i) => (
+            <MediaCard
+              key={song.id}
+              to={`/song/${song.id}`}
+              image={bestImage(song.images)}
+              title={song.title}
+              subtitle={song.subtitle}
+              fluid
+              onPlay={() => playQueueFeed(feedSongs, i)}
+            />
+          ))}
+        </div>
         {!feed.isLoading && !feed.isError && (
           <InfiniteSentinel
             onVisible={() => feed.hasNextPage && !feed.isFetchingNextPage && feed.fetchNextPage()}

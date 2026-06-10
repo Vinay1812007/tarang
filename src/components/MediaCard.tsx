@@ -9,15 +9,20 @@ interface Props {
   title: string;
   subtitle?: string;
   round?: boolean;
+  /** Fill the parent cell (grid layouts) instead of fixed shelf width. */
+  fluid?: boolean;
   onPlay?: () => void;
 }
 
-export function MediaCard({ to, image, title, subtitle, round, onPlay }: Props) {
+export function MediaCard({ to, image, title, subtitle, round, fluid, onPlay }: Props) {
   return (
     <Link
       to={to}
       data-deter-context
-      className="group w-36 sm:w-40 shrink-0 rounded-2xl p-2.5 hover:bg-ink-850 transition-colors animate-fade-up"
+      className={cn(
+        'group rounded-2xl p-2.5 hover:bg-ink-850 transition-colors animate-fade-up',
+        fluid ? 'w-full' : 'w-36 sm:w-40 shrink-0',
+      )}
     >
       <div className="relative">
         <img
