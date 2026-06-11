@@ -1,15 +1,24 @@
 <p align="center">
-  <img src="public/icons/icon.svg" width="84" alt="Tarang" />
+  <img src="public/icons/icon.svg" width="84" alt="VinaX" />
 </p>
 
-<h1 align="center">Tarang</h1>
-<p align="center"><em>Waves of music, tuned to you.</em><br/>
+<h1 align="center">VinaX</h1>
+<p align="center"><em>Music tuned to you.</em><br/>
 A premium, <strong>no-login</strong> music streaming app — web (Cloudflare Pages) + Android (Capacitor) — with fully <strong>local, explainable</strong> personalization.</p>
 
 ---
 
 
-## What's new in v1.1.0
+## What's new
+
+### v1.2.0
+- Rebrand: **VinaX** — new name, logo, and Android launcher icons (app data is preserved; the package id is unchanged)
+- Spotify-style navigation: mobile back header on detail pages, Android hardware-back support, streamlined bottom tabs
+- Resso-style live lyric line on the player
+- Recommendation tuning: artist diversity cap, recency boost, favorite-album candidates
+- Settings → playback notification diagnostic (plugin + permission status)
+
+### v1.1.0
 
 **Android-native playback**
 - Real media playback notification with play/pause/next/prev/seek (via `@jofr/capacitor-media-session` running a native MediaSessionService)
@@ -36,7 +45,7 @@ A premium, <strong>no-login</strong> music streaming app — web (Cloudflare Pag
 
 ## Brand story
 
-*Tarang* (तरंग) means **wave**. The premise: a music service should feel personal without demanding an identity. There is no login, no signup, no OTP, no account — your taste profile is a small, transparent, time-decayed model that lives only on your device. The recommendations that feel like "AI" are deterministic local heuristics you can inspect on the **Taste Profile** page.
+**VinaX** (formerly Tarang) is built on one premise: a music service should feel personal without demanding an identity. There is no login, no signup, no OTP, no account — your taste profile is a small, transparent, time-decayed model that lives only on your device. The recommendations that feel like "AI" are deterministic local heuristics you can inspect on the **Taste Profile** page.
 
 **Design identity (original — nothing borrowed from existing music products):**
 

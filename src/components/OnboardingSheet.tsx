@@ -32,7 +32,7 @@ export function OnboardingSheet() {
         <div className="flex items-center gap-3 mb-2">
           <img src="/icons/icon.svg" alt="" className="w-10 h-10 rounded-xl" />
           <div>
-            <h2 className="text-xl font-bold">Welcome to Tarang</h2>
+            <h2 className="text-xl font-bold">Welcome to VinaX</h2>
             <p className="text-xs text-ink-400">No login. Your taste stays on this device.</p>
           </div>
         </div>

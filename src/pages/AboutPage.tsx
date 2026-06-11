@@ -12,8 +12,8 @@ export default function AboutPage() {
       <div className="flex items-center gap-4 mb-6">
         <img src="/icons/icon.svg" alt="" className="w-16 h-16 rounded-2xl" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tarang</h1>
-          <p className="text-sm text-ink-400">Waves of music, tuned to you · v1.1.0</p>
+          <h1 className="text-3xl font-bold tracking-tight">VinaX</h1>
+          <p className="text-sm text-ink-400">Music tuned to you · v1.2.0</p>
         </div>
         {installable && (
           <button
@@ -27,8 +27,8 @@ export default function AboutPage() {
 
       <div className="space-y-5 text-sm text-ink-200 leading-relaxed">
         <p>
-          <em>Tarang</em> (तरंग) means “wave”. The idea behind this app is simple: a music service
-          should feel personal without demanding an account. Tarang has no login, no signup, no
+          <em>VinaX</em> is built on a simple idea: a music service
+          should feel personal without demanding an account. VinaX has no login, no signup, no
           profile servers. Your taste lives where it belongs — on your device — and the
           recommendations that feel intelligent are deterministic local math, fully explainable on
           your <a href="/taste-profile" className="text-ember-400">Taste Profile</a> page.
@@ -41,7 +41,7 @@ export default function AboutPage() {
         </p>
         <p>
           Music metadata and streams come from community JioSaavn API wrappers. Availability varies;
-          Tarang continuously health-scores {API_BASES.length} sources and fails over between them:
+          VinaX continuously health-scores {API_BASES.length} sources and fails over between them:
         </p>
         <ul className="list-disc pl-5 space-y-1 text-ink-300">
           {API_BASES.map((b) => (
@@ -49,7 +49,7 @@ export default function AboutPage() {
           ))}
         </ul>
         <p className="text-ink-400 text-xs">
-          Tarang streams content only — it implements no DRM circumvention and no persistent
+          VinaX streams content only — it implements no DRM circumvention and no persistent
           downloading of copyrighted media. Production builds disable source maps as cosmetic
           deterrence; this is not security and the client holds no secrets.
         </p>

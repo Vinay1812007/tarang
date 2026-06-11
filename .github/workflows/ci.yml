@@ -28,6 +28,6 @@ jobs:
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
-          name: tarang-web-dist
+          name: vinax-web-dist
           path: dist
           if-no-files-found: error

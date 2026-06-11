@@ -31,7 +31,7 @@ export default function CacheInfoPage() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">Cache & Offline Info</h1>
       <p className="text-sm text-ink-400 mb-6">
-        Tarang streams music — it does not persistently download tracks. Cached items below are
+        VinaX streams music — it does not persistently download tracks. Cached items below are
         metadata and your local preferences only.
       </p>
 

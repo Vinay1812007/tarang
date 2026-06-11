@@ -80,7 +80,7 @@ export function updateMediaMetadata(song: Song | null): void {
       p.setMetadata({
         title: song.title,
         artist: song.subtitle,
-        album: song.album?.name ?? 'Tarang',
+        album: song.album?.name ?? 'VinaX',
         artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
       }),
     ).catch(reportNativeFailure);
@@ -91,7 +91,7 @@ export function updateMediaMetadata(song: Song | null): void {
     ? new MediaMetadata({
         title: song.title,
         artist: song.subtitle,
-        album: song.album?.name ?? 'Tarang',
+        album: song.album?.name ?? 'VinaX',
         artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
       })
     : null;

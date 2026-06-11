@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.tarang.music',
-  appName: 'Tarang',
+  appName: 'VinaX',
   webDir: 'dist',
   android: {
     allowMixedContent: false,

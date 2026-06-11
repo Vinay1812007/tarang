@@ -1,12 +1,17 @@
 {
-  "name": "Tarang",
-  "short_name": "Tarang",
-  "description": "Waves of music, tuned to you. No login, private by design.",
+  "name": "VinaX",
+  "short_name": "VinaX",
+  "description": "Music tuned to you. No login, private by design.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0e14",
   "theme_color": "#0b0e14",
   "icons": [
-    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ]
 }
