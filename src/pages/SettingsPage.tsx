@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useRegion } from '@/features/location/useRegion';
@@ -13,6 +13,7 @@ import {
   resetAppState,
 } from '@/features/settings/actions';
 import { COUNTRIES, REGIONS } from '@/constants/regions';
+import { ensureNotificationPermission, isNativePlatform, mediaSessionAvailable } from '@/services/native';
 import { LANGUAGES } from '@/constants/languages';
 import { Chip } from '@/components/Chip';
 import { MoonIcon, SunIcon } from '@/components/Icons';
@@ -59,6 +60,10 @@ export default function SettingsPage() {
   const s = useSettingsStore();
   const region = useRegion();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [notifStatus, setNotifStatus] = useState<string | null>(null);
+  useEffect(() => {
+    if (isNativePlatform()) void ensureNotificationPermission().then(setNotifStatus);
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -127,6 +132,41 @@ export default function SettingsPage() {
         </Row>
       </Section>
 
+      {isNativePlatform() && (
+        <Section title="Playback Notification">
+          <Row
+            label="Media controls engine"
+            note={mediaSessionAvailable() ? 'Native media session plugin is active in this build.' : 'Plugin missing from this build — reinstall the latest APK.'}
+          >
+            <span className={mediaSessionAvailable() ? 'text-tide-400 text-sm font-semibold' : 'text-red-300 text-sm font-semibold'}>
+              {mediaSessionAvailable() ? 'OK' : 'Missing'}
+            </span>
+          </Row>
+          <Row
+            label="Notification permission"
+            note={
+              notifStatus === 'granted'
+                ? 'Granted — the playback notification appears while music plays.'
+                : 'Required on Android 13+. If "Request" does nothing, enable notifications for VinaX in Android Settings → Apps.'
+            }
+          >
+            <div className="flex items-center gap-2">
+              <span className={notifStatus === 'granted' ? 'text-tide-400 text-sm font-semibold' : 'text-red-300 text-sm font-semibold'}>
+                {notifStatus ?? '…'}
+              </span>
+              {notifStatus !== 'granted' && (
+                <button
+                  onClick={() => void ensureNotificationPermission().then(setNotifStatus)}
+                  className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
+                >
+                  Request
+                </button>
+              )}
+            </div>
+          </Row>
+        </Section>
+      )}
+
       <Section title="Region & Privacy">
         <Row
           label="Allow region inference"
@@ -193,9 +233,9 @@ export default function SettingsPage() {
         <Row label="Clear personalization profile" note="Erases taste profile + event log. Favorites stay.">
           <button onClick={() => void clearPersonalization()} className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-red-400 hover:text-red-300">Clear</button>
         </Row>
-        <Row label="Reset app state" note="Erases everything Tarang stores on this device and reloads.">
+        <Row label="Reset app state" note="Erases everything VinaX stores on this device and reloads.">
           <button
-            onClick={() => window.confirm('Erase ALL local Tarang data?') && void resetAppState()}
+            onClick={() => window.confirm('Erase ALL local VinaX data?') && void resetAppState()}
             className="px-4 py-2 rounded-full bg-red-500/15 border border-red-500/50 text-red-300 text-sm font-semibold hover:bg-red-500/25"
           >
             Reset
@@ -204,7 +244,7 @@ export default function SettingsPage() {
       </Section>
 
       <p className="text-xs text-ink-500 leading-relaxed mb-8">
-        Privacy: Tarang has no accounts and no user backend. Favorites, history, queue, settings, and
+        Privacy: VinaX has no accounts and no user backend. Favorites, history, queue, settings, and
         your taste profile exist only in this browser/app. Region awareness uses, at most, a coarse
         country code from Cloudflare’s edge or your browser locale — raw IP addresses are never read
         by the app and never stored. Recommendations are computed locally with no external AI service.

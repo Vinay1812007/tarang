@@ -4,6 +4,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { usePlayerStore, useCurrentSong } from '@/store/playerStore';
 import { useSyncedLyrics } from '@/features/lyrics/useSyncedLyrics';
 import { SyncedLyrics } from '@/components/SyncedLyrics';
+import { LiveLyricLine } from '@/components/LiveLyricLine';
 import { Seekbar } from '@/components/Seekbar';
 import { FavButton } from '@/components/FavButton';
 import { IconButton } from '@/components/IconButton';
@@ -150,6 +151,14 @@ export default function NowPlayingPage() {
           <FavButton song={song} className="shrink-0" />
         </div>
 
+        {/* Resso-style live lyric strip */}
+        {lyrics.data?.synced && (
+          <LiveLyricLine
+            lines={lyrics.data.synced}
+            onOpen={() => document.getElementById('lyrics-card')?.scrollIntoView({ behavior: 'smooth' })}
+          />
+        )}
+
         {/* Seek */}
         <div className="mt-3">
           <Seekbar timesBelow />
@@ -249,7 +258,8 @@ export default function NowPlayingPage() {
         {/* Lyrics card */}
         {(lyrics.data?.synced || lyrics.data?.plain) && (
           <div
-            className="mt-6 rounded-2xl overflow-hidden border border-white/5"
+            id="lyrics-card"
+            className="mt-6 rounded-2xl overflow-hidden border border-white/5 scroll-mt-4"
             style={{ background: accent ?? '#1e2433' }}
           >
             <div className="bg-ink-950/30 p-4">

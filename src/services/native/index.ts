@@ -3,6 +3,9 @@ import { Capacitor } from '@capacitor/core';
 export const isNativePlatform = (): boolean => Capacitor.isNativePlatform();
 export const isAndroid = (): boolean => Capacitor.getPlatform() === 'android';
 
+/** True when the native media-session plugin is compiled into this build. */
+export const mediaSessionAvailable = (): boolean => Capacitor.isPluginAvailable('MediaSession');
+
 function devLog(...args: unknown[]): void {
   if (import.meta.env.DEV) console.warn('[tarang:native]', ...args);
 }

@@ -65,8 +65,15 @@ export default function HomePage() {
 
   return (
     <div className="max-w-screen-2xl mx-auto">
-      {/* Hero */}
-      <div className="rounded-3xl bg-gradient-to-br from-ink-800 via-ink-850 to-ink-900 border border-ink-700 p-6 sm:p-8 mb-8">
+      {/* Hero — gradient shifts with the time of day */}
+      <div className={`rounded-3xl bg-gradient-to-br border border-ink-700 p-6 sm:p-8 mb-8 ${
+        ({
+          morning: 'from-ember-600/25 via-ink-850 to-ink-900',
+          afternoon: 'from-tide-500/15 via-ink-850 to-ink-900',
+          evening: 'from-purple-700/25 via-ink-850 to-ink-900',
+          'late-night': 'from-blue-900/40 via-ink-850 to-ink-900',
+        } as Record<string, string>)[dayPartLabel()] ?? 'from-ink-800 via-ink-850 to-ink-900'
+      }`}>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{greeting()}</h1>
         <p className="text-ink-300 mt-1 text-sm">
           {region?.country ? `Tuned for ${region.country}` : 'Tuned to you'} · no account, all local
