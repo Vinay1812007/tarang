@@ -207,6 +207,15 @@ export const usePlayerStore = create<PlayerState>()(
             prev: () => get().prev(),
             seekTo: (s) => get().seek(s),
           });
+          // Prefill the always-on media notification with the restored queue's
+          // current song (instead of a blank panel) once the service binds.
+          const restored = get().queue[get().index];
+          if (restored) {
+            window.setTimeout(() => {
+              updateMediaMetadata(restored);
+              updatePlaybackState(false);
+            }, 1500);
+          }
         },
 
         playQueue: (songs, startIndex = 0) => {
