@@ -11,6 +11,7 @@ import { useMoodSongs, useEditorialPlaylists } from '@/features/discover/useDisc
 import { useTrendingForLanguage } from '@/features/home/useHomeShelves';
 import { useSettingsStore } from '@/store/settingsStore';
 import { usePlayerStore } from '@/store/playerStore';
+import { playPlaylist } from '@/features/player/playEntity';
 import { bestImage } from '@/utils/images';
 
 export default function DiscoverPage() {
@@ -69,7 +70,7 @@ export default function DiscoverPage() {
       {editorial.data && editorial.data.length > 0 && (
         <Shelf title="Playlists For The Vibe" explanation="Editorial-style picks from upstream catalogs">
           {editorial.data.map((p) => (
-            <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle || `${p.songCount ?? ''} songs`} />
+            <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle || `${p.songCount ?? ''} songs`} onPlay={() => void playPlaylist(p.id, p.title)} />
           ))}
         </Shelf>
       )}

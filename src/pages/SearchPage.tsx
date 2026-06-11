@@ -20,6 +20,7 @@ import {
 import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { useSearchStore } from '@/store/searchStore';
 import { usePlayerStore } from '@/store/playerStore';
+import { playAlbum, playArtist, playPlaylist } from '@/features/player/playEntity';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
 
 const TABS = ['All', 'Songs', 'Albums', 'Artists', 'Playlists'] as const;
@@ -196,7 +197,7 @@ export default function SearchPage() {
                       <h2 className="text-lg font-bold mb-2">Albums</h2>
                       <div className="flex gap-1 overflow-x-auto no-scrollbar">
                         {all.data.albums.map((a) => (
-                          <MediaCard key={a.id} to={`/album/${a.id}`} image={bestImage(a.images)} title={a.title} subtitle={a.subtitle} />
+                          <MediaCard key={a.id} to={`/album/${a.id}`} image={bestImage(a.images)} title={a.title} subtitle={a.subtitle} onPlay={() => void playAlbum(a.id, a.title)} />
                         ))}
                       </div>
                     </section>
@@ -206,7 +207,7 @@ export default function SearchPage() {
                       <h2 className="text-lg font-bold mb-2">Artists</h2>
                       <div className="flex gap-1 overflow-x-auto no-scrollbar">
                         {all.data.artists.map((a) => (
-                          <MediaCard key={a.id} to={`/artist/${a.id}`} image={bestImage(a.images)} title={a.name} subtitle="Artist" round />
+                          <MediaCard key={a.id} to={`/artist/${a.id}`} image={bestImage(a.images)} title={a.name} subtitle="Artist" round onPlay={() => void playArtist(a.id, a.name)} />
                         ))}
                       </div>
                     </section>
@@ -216,7 +217,7 @@ export default function SearchPage() {
                       <h2 className="text-lg font-bold mb-2">Playlists</h2>
                       <div className="flex gap-1 overflow-x-auto no-scrollbar">
                         {all.data.playlists.map((p) => (
-                          <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle} />
+                          <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle} onPlay={() => void playPlaylist(p.id, p.title)} />
                         ))}
                       </div>
                     </section>
@@ -245,17 +246,17 @@ export default function SearchPage() {
           )}
           {tab === 'Albums' && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {(albums.data ?? []).map((a) => <MediaCard key={a.id} to={`/album/${a.id}`} image={bestImage(a.images)} title={a.title} subtitle={a.subtitle} />)}
+              {(albums.data ?? []).map((a) => <MediaCard key={a.id} to={`/album/${a.id}`} image={bestImage(a.images)} title={a.title} subtitle={a.subtitle} fluid onPlay={() => void playAlbum(a.id, a.title)} />)}
             </div>
           )}
           {tab === 'Artists' && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {(artists.data ?? []).map((a) => <MediaCard key={a.id} to={`/artist/${a.id}`} image={bestImage(a.images)} title={a.name} subtitle="Artist" round />)}
+              {(artists.data ?? []).map((a) => <MediaCard key={a.id} to={`/artist/${a.id}`} image={bestImage(a.images)} title={a.name} subtitle="Artist" round fluid onPlay={() => void playArtist(a.id, a.name)} />)}
             </div>
           )}
           {tab === 'Playlists' && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {(playlists.data ?? []).map((p) => <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle} />)}
+              {(playlists.data ?? []).map((p) => <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle} fluid onPlay={() => void playPlaylist(p.id, p.title)} />)}
             </div>
           )}
         </>

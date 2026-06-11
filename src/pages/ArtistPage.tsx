@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useArtist, useInfiniteArtistSongs } from '@/features/artists/useArtist';
 import { usePlayerStore } from '@/store/playerStore';
+import { playAlbum } from '@/features/player/playEntity';
 import { SongRow } from '@/components/SongRow';
 import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
@@ -61,7 +62,7 @@ export default function ArtistPage() {
       {artist.albums.length > 0 && (
         <Shelf title="Albums">
           {artist.albums.map((a) => (
-            <MediaCard key={a.id} to={`/album/${a.id}`} image={bestImage(a.images)} title={a.title} subtitle={a.year ?? ''} />
+            <MediaCard key={a.id} to={`/album/${a.id}`} image={bestImage(a.images)} title={a.title} subtitle={a.year ?? ''} onPlay={() => void playAlbum(a.id, a.title)} />
           ))}
         </Shelf>
       )}
