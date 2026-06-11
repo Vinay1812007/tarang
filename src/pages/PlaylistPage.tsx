@@ -13,6 +13,7 @@ export default function PlaylistPage() {
   const { id } = useParams();
   const { data: playlist, isLoading, isError, refetch } = usePlaylist(id);
   const playQueue = usePlayerStore((s) => s.playQueue);
+  const enqueueAll = usePlayerStore((s) => s.enqueueAll);
   usePageTitle(playlist?.title);
 
   if (isLoading) return <div className="max-w-4xl mx-auto"><HeaderSkeleton /><ListSkeleton /></div>;
@@ -29,9 +30,14 @@ export default function PlaylistPage() {
           {playlist.songCount != null && <p className="text-xs text-ink-400 mt-1">{playlist.songCount} songs</p>}
           <div className="flex gap-2 mt-4">
             {playlist.songs.length > 0 && (
-              <button onClick={() => playQueue(playlist.songs, 0)} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-ember-500 text-ink-950 font-bold hover:bg-ember-400">
-                <PlayIcon className="w-4 h-4" /> Play all
-              </button>
+              <>
+                <button onClick={() => playQueue(playlist.songs, 0)} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-ember-500 text-ink-950 font-bold hover:bg-ember-400">
+                  <PlayIcon className="w-4 h-4" /> Play all
+                </button>
+                <button onClick={() => enqueueAll(playlist.songs)} className="px-4 py-2.5 rounded-full border border-ink-600 text-sm font-semibold text-ink-200 hover:border-ink-400">
+                  + Queue
+                </button>
+              </>
             )}
             <button onClick={() => void shareLink(`/playlist/${playlist.id}`, playlist.title)} aria-label="Share" className="p-2.5 rounded-full border border-ink-600 text-ink-200 hover:border-ink-400">
               <ShareIcon className="w-4 h-4" />

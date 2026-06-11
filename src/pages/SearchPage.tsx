@@ -22,6 +22,7 @@ import { useSearchStore } from '@/store/searchStore';
 import { usePlayerStore } from '@/store/playerStore';
 import { playAlbum, playArtist, playPlaylist } from '@/features/player/playEntity';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
+import { languageLabel } from '@/constants/languages';
 
 const TABS = ['All', 'Songs', 'Albums', 'Artists', 'Playlists'] as const;
 type Tab = (typeof TABS)[number];
@@ -45,6 +46,7 @@ export default function SearchPage() {
   const [input, setInput] = useState(routeQuery ?? '');
   const [tab, setTab] = useState<Tab>('All');
   const [listening, setListening] = useState(false);
+  const [langFilter, setLangFilter] = useState<string | null>(null);
   const debounced = useDebouncedValue(input, 350);
   const q = normalizeQuery(debounced);
   usePageTitle(q ? `“${q}”` : 'Search');
@@ -74,7 +76,9 @@ export default function SearchPage() {
   const active = q.length > 1;
   const rankedAllSongs = all.data ? rankSongs(all.data.songs) : [];
   const topResult = rankedAllSongs[0];
-  const songList = flattenSongPages(infiniteSongs.data?.pages);
+  const allSongList = flattenSongPages(infiniteSongs.data?.pages);
+  const availableLangs = [...new Set(allSongList.map((s) => s.language).filter((l): l is string => !!l && l !== 'unknown'))];
+  const songList = langFilter ? allSongList.filter((s) => s.language === langFilter) : allSongList;
   const SpeechRec = getSpeechRecognition();
 
   const startVoice = () => {
@@ -232,6 +236,16 @@ export default function SearchPage() {
 
           {tab === 'Songs' && (
             <>
+              {availableLangs.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">
+                  <Chip active={!langFilter} onClick={() => setLangFilter(null)}>All languages</Chip>
+                  {availableLangs.map((l) => (
+                    <Chip key={l} active={langFilter === l} onClick={() => setLangFilter(l)}>
+                      {languageLabel(l)}
+                    </Chip>
+                  ))}
+                </div>
+              )}
               {infiniteSongs.isLoading && <ListSkeleton />}
               {infiniteSongs.isError && <ErrorState retry={() => infiniteSongs.refetch()} />}
               {songList.map((song, i) => (

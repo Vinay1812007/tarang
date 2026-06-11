@@ -11,6 +11,9 @@ import {
   useTimeOfDayShelf,
   useTrendingForLanguage,
 } from '@/features/home/useHomeShelves';
+import { useYourArtists } from '@/features/home/useYourArtists';
+import { playArtist } from '@/features/player/playEntity';
+import { letterAvatar } from '@/utils/avatar';
 import { useRecommendations } from '@/features/recommendations/useRecommendations';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useLibraryStore } from '@/store/libraryStore';
@@ -54,6 +57,7 @@ export default function HomePage() {
   const pinned = useSettingsStore((s) => s.pinnedLanguages);
   const region = useRegion();
   const continueListening = useContinueListening();
+  const yourArtists = useYourArtists();
   const favorites = useLibraryStore((s) => s.favorites);
   const timeShelf = useTimeOfDayShelf();
   const mixes = useRecommendations();
@@ -92,6 +96,22 @@ export default function HomePage() {
       </div>
 
       <SongShelf title="Continue Listening" explanation="Pick up where you left off" songs={continueListening} seeAllTo="/history" />
+
+      {yourArtists.length >= 3 && (
+        <Shelf title="Your Artists" explanation="The voices you keep coming back to">
+          {yourArtists.map((a) => (
+            <MediaCard
+              key={a.id || a.name}
+              to={a.id ? `/artist/${a.id}` : `/search/${encodeURIComponent(a.name)}`}
+              image={a.image ?? letterAvatar(a.name)}
+              title={a.name}
+              subtitle={`${a.plays} plays`}
+              round
+              onPlay={a.id ? () => void playArtist(a.id, a.name) : undefined}
+            />
+          ))}
+        </Shelf>
+      )}
 
       {mixes.isLoading && <ShelfSkeleton />}
       {mixes.data?.slice(0, 2).map((mix) => (

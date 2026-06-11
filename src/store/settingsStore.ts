@@ -8,6 +8,7 @@ export interface SettingsState {
   theme: 'dark' | 'light';
   autoplay: boolean;
   autoqueueSimilar: boolean;
+  keepScreenOn: boolean;
   audioQuality: AudioQualityPref;
   /** 0..1 — how aggressively recommendations personalize. */
   recommendationIntensity: number;
@@ -22,6 +23,7 @@ export interface SettingsState {
   setTheme(theme: 'dark' | 'light'): void;
   setAutoplay(v: boolean): void;
   setAutoqueueSimilar(v: boolean): void;
+  setKeepScreenOn(v: boolean): void;
   setAudioQuality(q: AudioQualityPref): void;
   setRecommendationIntensity(v: number): void;
   setAllowRegionInference(v: boolean): void;
@@ -38,6 +40,7 @@ const defaults = {
   theme: 'dark' as const,
   autoplay: true,
   autoqueueSimilar: true,
+  keepScreenOn: true,
   audioQuality: 'high' as AudioQualityPref,
   recommendationIntensity: 0.7,
   allowRegionInference: true,
@@ -55,6 +58,7 @@ export const useSettingsStore = create<SettingsState>()(
       setTheme: (theme) => set({ theme }),
       setAutoplay: (autoplay) => set({ autoplay }),
       setAutoqueueSimilar: (autoqueueSimilar) => set({ autoqueueSimilar }),
+      setKeepScreenOn: (keepScreenOn) => set({ keepScreenOn }),
       setAudioQuality: (audioQuality) => set({ audioQuality }),
       setRecommendationIntensity: (v) =>
         set({ recommendationIntensity: Math.min(1, Math.max(0, v)) }),

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePlayerStore, useCurrentSong } from '@/store/playerStore';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
@@ -33,6 +33,22 @@ export function PlayerBar() {
     usePlayerStore.getState();
   const navigate = useNavigate();
   const [accent, setAccent] = useState<string | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    if (Math.abs(dx) > 64 && Math.abs(dy) < 48) {
+      if (dx < 0) next(true);
+      else prev();
+    }
+  };
 
   const artUrl = song ? bestImage(song.images, 150) : null;
 
@@ -56,6 +72,8 @@ export function PlayerBar() {
         <div
           className="relative rounded-xl overflow-hidden shadow-lg border border-white/5"
           style={{ background: accent ?? '#1e2433' }}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           <div className="flex items-center gap-2.5 pl-2 pr-1 py-1.5 bg-ink-950/25">
             <button

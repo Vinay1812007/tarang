@@ -85,6 +85,9 @@ export default function SettingsPage() {
         <Row label="Auto-queue similar" note="When the queue ends, keep the vibe going with similar tracks.">
           <Toggle on={s.autoqueueSimilar} onChange={s.setAutoqueueSimilar} label="Auto-queue similar" />
         </Row>
+        <Row label="Keep screen on in player" note="Holds a screen wake lock while the full-screen player is open and playing.">
+          <Toggle on={s.keepScreenOn} onChange={s.setKeepScreenOn} label="Keep screen on in player" />
+        </Row>
         <Row label="Audio quality" note="Picks the closest available stream; falls back automatically.">
           <div className="flex gap-1.5">
             {(['low', 'medium', 'high'] as AudioQualityPref[]).map((q) => (

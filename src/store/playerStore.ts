@@ -39,6 +39,7 @@ export interface PlayerState {
   startRadio(song: Song): void;
   enqueue(song: Song): void;
   enqueueNext(song: Song): void;
+  enqueueAll(songs: Song[]): void;
   removeAt(index: number): void;
   moveInQueue(from: number, to: number): void;
   clearQueue(): void;
@@ -231,6 +232,18 @@ export const usePlayerStore = create<PlayerState>()(
           set({ queue: [...queue, song] });
           toast('Added to queue');
           if (queue.length === 0) get().playQueue([song]);
+        },
+
+        enqueueAll: (songs) => {
+          const existing = new Set(get().queue.map((s) => s.id));
+          const fresh = songs.filter((s) => !existing.has(s.id));
+          if (!fresh.length) {
+            toast('Already in queue');
+            return;
+          }
+          set({ queue: [...get().queue, ...fresh] });
+          toast(`Added ${fresh.length} songs to queue`);
+          if (get().queue.length === fresh.length) startTrack(fresh[0], true);
         },
 
         enqueueNext: (song) => {

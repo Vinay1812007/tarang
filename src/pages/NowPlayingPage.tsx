@@ -27,6 +27,8 @@ import {
 } from '@/components/Icons';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
 import { extractAverageColor } from '@/utils/color';
+import { acquireWakeLock, releaseWakeLock } from '@/utils/wakeLock';
+import { useSettingsStore } from '@/store/settingsStore';
 import { shareLink } from '@/utils/share';
 import { toast } from '@/store/toastStore';
 import { cn } from '@/utils/cn';
@@ -56,7 +58,15 @@ export default function NowPlayingPage() {
 
   const [accent, setAccent] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false);
+  const keepScreenOn = useSettingsStore((s) => s.keepScreenOn);
   const lyrics = useSyncedLyrics(song);
+
+  // Keep the screen awake while this view is open and music plays.
+  useEffect(() => {
+    if (keepScreenOn && isPlaying) void acquireWakeLock();
+    else releaseWakeLock();
+    return releaseWakeLock;
+  }, [keepScreenOn, isPlaying]);
 
   const artUrl = song ? bestImage(song.images, 500) : null;
 

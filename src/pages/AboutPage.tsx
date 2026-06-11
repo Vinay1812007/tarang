@@ -13,7 +13,7 @@ export default function AboutPage() {
         <img src="/icons/icon.svg" alt="" className="w-16 h-16 rounded-2xl" />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">VinaX</h1>
-          <p className="text-sm text-ink-400">Music tuned to you · v1.2.0</p>
+          <p className="text-sm text-ink-400">Music tuned to you · v1.3.0</p>
         </div>
         {installable && (
           <button

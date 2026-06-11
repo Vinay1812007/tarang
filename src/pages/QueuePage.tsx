@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useLibraryStore } from '@/store/libraryStore';
+import { toast } from '@/store/toastStore';
 import { usePlayerStore, useCurrentSong } from '@/store/playerStore';
 import { EmptyState } from '@/components/States';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
@@ -12,6 +15,21 @@ export default function QueuePage() {
   const index = usePlayerStore((s) => s.index);
   const { playAt, removeAt, clearQueue, moveInQueue } = usePlayerStore.getState();
   const current = useCurrentSong();
+  const currentRowRef = useRef<HTMLDivElement>(null);
+
+  // Locate the playing song when opening a long queue.
+  useEffect(() => {
+    currentRowRef.current?.scrollIntoView({ block: 'center' });
+  }, []);
+
+  const saveAsCollection = () => {
+    if (!queue.length) return;
+    const lib = useLibraryStore.getState();
+    const name = `Queue · ${new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`;
+    const id = lib.createCollection(name);
+    queue.forEach((song) => lib.addToCollection(id, song));
+    toast(`Saved ${queue.length} songs as “${name}”`);
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -21,9 +39,14 @@ export default function QueuePage() {
           <p className="text-sm text-ink-400 mt-1">{queue.length} songs{current ? ` · now: ${current.title}` : ''}</p>
         </div>
         {queue.length > 0 && (
-          <button onClick={clearQueue} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-red-400 hover:text-red-300">
-            Clear queue
-          </button>
+          <div className="flex gap-2">
+            <button onClick={saveAsCollection} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-ember-500 hover:text-ember-400">
+              Save as collection
+            </button>
+            <button onClick={clearQueue} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-red-400 hover:text-red-300">
+              Clear
+            </button>
+          </div>
         )}
       </div>
       {queue.length === 0 ? (
@@ -32,6 +55,7 @@ export default function QueuePage() {
         queue.map((song, i) => (
           <div
             key={`${song.id}-${i}`}
+            ref={i === index ? currentRowRef : undefined}
             className={cn('group flex items-center gap-2 px-2 py-2 rounded-xl', i === index ? 'bg-ink-800' : 'hover:bg-ink-850')}
           >
             <span className="w-6 text-center text-xs text-ink-400 tabular-nums shrink-0">{i + 1}</span>
