@@ -40,6 +40,12 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Target SDK 33 (media-session plugin API-34 receiver crash workaround)
+        run: |
+          V=android/variables.gradle
+          sed -i 's/targetSdkVersion = 34/targetSdkVersion = 33/' "$V"
+          grep targetSdkVersion "$V"
+
       - name: Install Tarang launcher icons
         run: |
           cp -rv android-res/* android/app/src/main/res/

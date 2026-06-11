@@ -1,5 +1,5 @@
 import { Suspense, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { BottomNav } from '@/components/BottomNav';
 import { MobileBackBar } from '@/components/MobileBackBar';
@@ -20,6 +20,8 @@ import { installDeterrence } from '@/utils/deterrence';
 
 export function AppLayout() {
   const theme = useSettingsStore((s) => s.theme);
+  const { pathname } = useLocation();
+  const isFullScreenPlayer = pathname === '/now-playing';
   useKeyboardShortcuts();
 
   // Android hardware back: pop history, or minimize on the root screen.
@@ -84,10 +86,12 @@ export function AppLayout() {
       </div>
       <Toasts />
       <OnboardingSheet />
-      <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)] bg-ink-950/95">
-        <PlayerBar />
-        <BottomNav />
-      </div>
+      {!isFullScreenPlayer && (
+        <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)] bg-ink-950/95">
+          <PlayerBar />
+          <BottomNav />
+        </div>
+      )}
     </div>
   );
 }

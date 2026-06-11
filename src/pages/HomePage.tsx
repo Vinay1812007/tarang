@@ -69,6 +69,13 @@ export default function HomePage() {
 
   return (
     <div className="max-w-screen-2xl mx-auto">
+      {/* Mobile brand header — the sidebar (with the logo) is hidden on phones */}
+      <div className="md:hidden flex items-center gap-2.5 mb-4 pt-1">
+        <img src="/icons/icon.svg" alt="" className="w-9 h-9 rounded-xl" />
+        <span className="text-2xl font-bold tracking-tight">
+          VinaX<span className="text-ember-500">.</span>
+        </span>
+      </div>
       {/* Hero — gradient shifts with the time of day */}
       <div className={`rounded-3xl bg-gradient-to-br border border-ink-700 p-6 sm:p-8 mb-8 ${
         ({
