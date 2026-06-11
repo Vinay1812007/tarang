@@ -24,6 +24,25 @@ const native = isNativePlatform();
 let pluginPromise: Promise<NativePlugin> | null = null;
 let failureReported = false;
 
+export interface MediaSessionLogEntry {
+  ts: number;
+  call: string;
+  ok: boolean;
+  detail?: string;
+}
+
+const log: MediaSessionLogEntry[] = [];
+
+function record(call: string, ok: boolean, detail?: string): void {
+  log.push({ ts: Date.now(), call, ok, detail });
+  if (log.length > 12) log.shift();
+}
+
+/** Last native media-session call results — surfaced in Settings diagnostics. */
+export function getMediaSessionLog(): MediaSessionLogEntry[] {
+  return [...log].reverse();
+}
+
 function reportNativeFailure(err: unknown): void {
   if (import.meta.env.DEV) console.warn('[tarang:media-session]', err);
   if (!failureReported) {
@@ -55,7 +74,11 @@ export function setMediaHandlers(h: MediaHandlers): void {
         if (d.seekTime != null) h.seekTo(d.seekTime);
       });
       await p.setActionHandler({ action: 'stop' }, () => h.pause());
-    }).catch(reportNativeFailure);
+      record('setActionHandlers', true);
+    }).catch((err) => {
+      record('setActionHandlers', false, String(err));
+      reportNativeFailure(err);
+    });
     return;
   }
   if (!webSupported()) return;
@@ -82,8 +105,11 @@ export function updateMediaMetadata(song: Song | null): void {
         artist: song.subtitle,
         album: song.album?.name ?? 'VinaX',
         artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
-      }),
-    ).catch(reportNativeFailure);
+      }).then(() => record('setMetadata', true)),
+    ).catch((err) => {
+      record('setMetadata', false, String(err));
+      reportNativeFailure(err);
+    });
     return;
   }
   if (!webSupported()) return;
@@ -99,7 +125,15 @@ export function updateMediaMetadata(song: Song | null): void {
 
 export function updatePlaybackState(playing: boolean): void {
   if (native) {
-    void plugin().then((p) => p.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })).catch(reportNativeFailure);
+    void plugin()
+      .then((p) =>
+        p.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })
+          .then(() => record(`setPlaybackState(${playing ? 'playing' : 'paused'})`, true)),
+      )
+      .catch((err) => {
+        record('setPlaybackState', false, String(err));
+        reportNativeFailure(err);
+      });
     return;
   }
   if (!webSupported()) return;

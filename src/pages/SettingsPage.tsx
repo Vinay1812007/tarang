@@ -15,6 +15,7 @@ import {
 import { COUNTRIES, REGIONS } from '@/constants/regions';
 import { ensureNotificationPermission, isNativePlatform, mediaSessionAvailable } from '@/services/native';
 import { checkForUpdate } from '@/services/update';
+import { getMediaSessionLog } from '@/services/media-session';
 import { toast } from '@/store/toastStore';
 import { LANGUAGES } from '@/constants/languages';
 import { Chip } from '@/components/Chip';
@@ -108,14 +109,16 @@ export default function SettingsPage() {
             )}
           </div>
         </Row>
-        <Row label="Keyboard shortcuts" note="Space, arrows, N/P, M, S, R, F — or press ? anywhere.">
-          <button
-            onClick={() => window.dispatchEvent(new Event('vinax:shortcuts'))}
-            className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
-          >
-            View
-          </button>
-        </Row>
+        {!isNativePlatform() && (
+          <Row label="Keyboard shortcuts" note="Space, arrows, N/P, M, S, R, F — or press ? anywhere.">
+            <button
+              onClick={() => window.dispatchEvent(new Event('vinax:shortcuts'))}
+              className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
+            >
+              View
+            </button>
+          </Row>
+        )}
         <Row label="Audio quality" note="Picks the closest available stream; falls back automatically.">
           <div className="flex gap-1.5">
             {(['low', 'medium', 'high'] as AudioQualityPref[]).map((q) => (
@@ -195,6 +198,24 @@ export default function SettingsPage() {
               )}
             </div>
           </Row>
+          <div className="py-3">
+            <p className="text-sm font-medium mb-1.5">Native call log (newest first)</p>
+            <div className="rounded-xl bg-ink-900/70 border border-ink-700 p-3 space-y-1 max-h-44 overflow-y-auto">
+              {getMediaSessionLog().length === 0 && (
+                <p className="text-xs text-ink-400">No calls yet — play a song, then reopen Settings.</p>
+              )}
+              {getMediaSessionLog().map((e, i) => (
+                <p key={i} className="text-[11px] font-mono">
+                  <span className={e.ok ? 'text-tide-400' : 'text-red-300'}>{e.ok ? 'OK ' : 'ERR'}</span>{' '}
+                  <span className="text-ink-200">{e.call}</span>
+                  {e.detail && <span className="text-red-300/80 block pl-7 break-all">{e.detail}</span>}
+                </p>
+              ))}
+            </div>
+            <p className="text-[11px] text-ink-500 mt-1.5">
+              If a red ERR appears here, screenshot this panel — it names the exact Android failure.
+            </p>
+          </div>
         </Section>
       )}
 
