@@ -70,9 +70,9 @@ export function Sidebar() {
                     end={to === '/'}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm transition-colors',
+                        'relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm transition-colors',
                         isActive
-                          ? 'bg-ink-700 text-ember-400 font-semibold'
+                          ? 'bg-ink-800 text-ember-400 font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-ember-500'
                           : 'text-ink-200 hover:bg-ink-800 hover:text-ink-100',
                       )
                     }

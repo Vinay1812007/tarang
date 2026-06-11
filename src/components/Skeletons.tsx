@@ -53,3 +53,17 @@ export function PageSkeleton() {
     </div>
   );
 }
+
+export function CardGridSkeleton({ cards = 12 }: { cards?: number }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
+      {Array.from({ length: cards }).map((_, i) => (
+        <div key={i} className="p-2.5">
+          <div className="skeleton aspect-square rounded-xl" />
+          <div className="skeleton h-3.5 w-3/4 mt-2.5" />
+          <div className="skeleton h-3 w-1/2 mt-1.5" />
+        </div>
+      ))}
+    </div>
+  );
+}

@@ -12,7 +12,7 @@ const items = [
 
 export function BottomNav() {
   return (
-    <nav className="md:hidden bg-ink-950/95 backdrop-blur border-t border-ink-700">
+    <nav className="md:hidden bg-ink-950/95 backdrop-blur border-t border-ink-800">
       <ul className="flex">
         {items.map(({ to, label, icon: Icon }) => (
           <li key={to} className="flex-1">
@@ -21,13 +21,24 @@ export function BottomNav() {
               end={to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium',
-                  isActive ? 'text-ember-400' : 'text-ink-300',
+                  'flex flex-col items-center gap-1 pt-2 pb-2.5 text-[10px] font-medium transition-colors',
+                  isActive ? 'text-ember-400' : 'text-ink-400 active:text-ink-200',
                 )
               }
             >
-              <Icon className="w-5 h-5" />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={cn(
+                      'flex items-center justify-center w-12 h-7 rounded-full transition-colors',
+                      isActive && 'bg-ember-500/15',
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </span>
+                  {label}
+                </>
+              )}
             </NavLink>
           </li>
         ))}

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
-import { ShelfSkeleton, ListSkeleton } from '@/components/Skeletons';
+import { ShelfSkeleton, CardGridSkeleton } from '@/components/Skeletons';
 import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { Chip } from '@/components/Chip';
@@ -116,7 +116,7 @@ export default function HomePage() {
         <p className="text-xs text-ink-400 mt-0.5 mb-3">
           {languageLabel(primaryLang)} picks, ranked by your taste — keep scrolling
         </p>
-        {feed.isLoading && <ListSkeleton />}
+        {feed.isLoading && <CardGridSkeleton />}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
           {feedSongs.map((song, i) => (
             <MediaCard

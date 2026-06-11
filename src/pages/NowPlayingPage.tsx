@@ -93,7 +93,7 @@ export default function NowPlayingPage() {
   };
 
   return (
-    <div className="relative -mx-4 md:-mx-8 -mt-4 px-5 md:px-8 pt-3 min-h-full overflow-hidden">
+    <div className="relative -mx-4 md:-mx-8 -mt-4 px-5 md:px-8 pt-[max(0.75rem,env(safe-area-inset-top))] min-h-full overflow-hidden">
       {/* Backdrop: artwork-tinted vertical gradient */}
       <div className="absolute inset-0 -z-10" aria-hidden>
         <div
