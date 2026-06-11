@@ -15,6 +15,7 @@ import {
 import { COUNTRIES, REGIONS } from '@/constants/regions';
 import { ensureNotificationPermission, isNativePlatform, mediaSessionAvailable } from '@/services/native';
 import { checkForUpdate } from '@/services/update';
+import { useUpdateStore } from '@/store/updateStore';
 import { getMediaSessionLog } from '@/services/media-session';
 import { toast } from '@/store/toastStore';
 import { LANGUAGES } from '@/constants/languages';
@@ -98,7 +99,7 @@ export default function SettingsPage() {
               <button
                 onClick={() =>
                   void checkForUpdate().then((u) => {
-                    if (u) window.open(u.apkUrl, '_blank');
+                    if (u) useUpdateStore.getState().setInfo(u);
                     else toast('You’re on the latest version');
                   })
                 }

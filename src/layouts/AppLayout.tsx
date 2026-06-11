@@ -7,6 +7,9 @@ import { PlayerBar } from '@/components/PlayerBar';
 import { Toasts } from '@/components/Toasts';
 import { OnboardingSheet } from '@/components/OnboardingSheet';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
+import { UpdateDialog } from '@/components/UpdateDialog';
+import { checkForUpdate } from '@/services/update';
+import { useUpdateStore } from '@/store/updateStore';
 import { PageSkeleton } from '@/components/Skeletons';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -47,6 +50,8 @@ export function AppLayout() {
     installDeterrence();
     // Android 13+: media notification needs notification permission.
     void requestNotificationPermissionOnce();
+    // Mandatory update gate (native only; no-op on web).
+    void checkForUpdate().then((info) => useUpdateStore.getState().setInfo(info));
 
     const settings = useSettingsStore.getState();
     void resolveRegion({
@@ -90,6 +95,7 @@ export function AppLayout() {
       <Toasts />
       <OnboardingSheet />
       {!isNativePlatform() && <ShortcutsModal />}
+      {isNativePlatform() && <UpdateDialog />}
       {!isFullScreenPlayer && (
         <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]">
           <PlayerBar />

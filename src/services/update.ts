@@ -38,3 +38,39 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
     return null;
   }
 }
+
+export type InstallPhase = 'downloading' | 'installing';
+
+/**
+ * Fully in-app update: downloads the signed APK with native HTTP (no browser,
+ * no CORS), writes it to app cache, and hands it to the Android package
+ * installer. Requires REQUEST_INSTALL_PACKAGES (added in CI manifest patch) —
+ * Android shows its own "allow updates from this app" consent the first time.
+ */
+export async function downloadAndInstall(
+  apkUrl: string,
+  onPhase: (phase: InstallPhase) => void,
+): Promise<void> {
+  const [{ CapacitorHttp }, { Filesystem, Directory }, { FileOpener }] = await Promise.all([
+    import('@capacitor/core'),
+    import('@capacitor/filesystem'),
+    import('@capacitor-community/file-opener'),
+  ]);
+  onPhase('downloading');
+  const res = await CapacitorHttp.get({
+    url: apkUrl,
+    responseType: 'blob', // returns base64 in res.data
+    headers: { Accept: 'application/octet-stream' },
+  });
+  if (res.status !== 200 || typeof res.data !== 'string' || res.data.length < 1000) {
+    throw new Error(`Download failed (HTTP ${res.status})`);
+  }
+  await Filesystem.writeFile({
+    path: 'vinax-update.apk',
+    data: res.data,
+    directory: Directory.Cache,
+  });
+  const { uri } = await Filesystem.getUri({ path: 'vinax-update.apk', directory: Directory.Cache });
+  onPhase('installing');
+  await FileOpener.open({ filePath: uri, contentType: 'application/vnd.android.package-archive' });
+}
