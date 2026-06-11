@@ -14,6 +14,8 @@ import {
 } from '@/features/settings/actions';
 import { COUNTRIES, REGIONS } from '@/constants/regions';
 import { ensureNotificationPermission, isNativePlatform, mediaSessionAvailable } from '@/services/native';
+import { checkForUpdate } from '@/services/update';
+import { toast } from '@/store/toastStore';
 import { LANGUAGES } from '@/constants/languages';
 import { Chip } from '@/components/Chip';
 import { MoonIcon, SunIcon } from '@/components/Icons';
@@ -87,6 +89,24 @@ export default function SettingsPage() {
         </Row>
         <Row label="Keep screen on in player" note="Holds a screen wake lock while the full-screen player is open and playing.">
           <Toggle on={s.keepScreenOn} onChange={s.setKeepScreenOn} label="Keep screen on in player" />
+        </Row>
+        <Row label="App version" note={isNativePlatform() ? 'Checks the website for a newer signed APK.' : 'Web version updates automatically on deploy.'}>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-ink-300 tabular-nums">v{__APP_VERSION__}</span>
+            {isNativePlatform() && (
+              <button
+                onClick={() =>
+                  void checkForUpdate().then((u) => {
+                    if (u) window.open(u.apkUrl, '_blank');
+                    else toast('You’re on the latest version');
+                  })
+                }
+                className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
+              >
+                Check for updates
+              </button>
+            )}
+          </div>
         </Row>
         <Row label="Keyboard shortcuts" note="Space, arrows, N/P, M, S, R, F — or press ? anywhere.">
           <button

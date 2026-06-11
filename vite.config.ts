@@ -1,9 +1,32 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
+import fs from 'node:fs';
+
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as {
+  version: string;
+};
+
+/** Emits dist/version.json so installed apps can detect site updates. */
+function versionManifest(): Plugin {
+  return {
+    name: 'vinax-version-manifest',
+    closeBundle() {
+      const out = path.resolve(__dirname, 'dist/version.json');
+      fs.writeFileSync(
+        out,
+        JSON.stringify({
+          version: pkg.version,
+          apk: 'https://github.com/Vinay1812007/VinaX/releases/latest/download/vinax.apk',
+        }),
+      );
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  plugins: [react(), versionManifest()],
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },

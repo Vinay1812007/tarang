@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-apk:
@@ -39,6 +39,14 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Stamp version (versionCode from run number — fixes "older version" installs)
+        run: |
+          G=android/app/build.gradle
+          V=$(node -p "require('./package.json').version")
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" "$G"
+          sed -i "s/versionName \"1.0\"/versionName \"$V\"/" "$G"
+          grep -E 'versionCode|versionName' "$G"
 
       - name: Target SDK 33 (media-session plugin API-34 receiver crash workaround)
         run: |
@@ -139,3 +147,23 @@ jobs:
           name: vinax-release-apk
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      - name: Prepare release assets
+        if: ${{ env.HAS_KEYSTORE == 'true' }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$V" >> "$GITHUB_ENV"
+          cp android/app/build/outputs/apk/release/app-release.apk vinax.apk
+          ls -lh vinax.apk
+
+      - name: Publish GitHub Release (public APK download)
+        if: ${{ env.HAS_KEYSTORE == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}-build${{ github.run_number }}
+          name: VinaX v${{ env.APP_VERSION }} (build ${{ github.run_number }})
+          make_latest: true
+          files: vinax.apk
+          body: |
+            Signed VinaX Android APK. Install over the previous version — no uninstall needed
+            (consistent signing key from this release onward).

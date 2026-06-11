@@ -6,6 +6,7 @@ import { ShelfSkeleton, CardGridSkeleton } from '@/components/Skeletons';
 import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { Chip } from '@/components/Chip';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { IconButton } from '@/components/IconButton';
 import { MoonIcon, SettingsIcon, SunIcon, SparkleIcon } from '@/components/Icons';
 import { useHistoryStore } from '@/store/historyStore';
@@ -100,6 +101,8 @@ export default function HomePage() {
           </IconButton>
         </div>
       </div>
+      <UpdateBanner />
+
       {/* Hero — gradient shifts with the time of day */}
       <div className={`rounded-3xl bg-gradient-to-br border border-ink-700 p-6 sm:p-8 mb-8 ${
         ({
