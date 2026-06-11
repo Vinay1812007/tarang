@@ -7,6 +7,7 @@ import { RouteError } from '@/components/ErrorBoundary';
 const HomePage = lazy(() => import('@/pages/HomePage'));
 const DiscoverPage = lazy(() => import('@/pages/DiscoverPage'));
 const ChartsPage = lazy(() => import('@/pages/ChartsPage'));
+const DownloadPage = lazy(() => import('@/pages/DownloadPage'));
 const MadeForYouPage = lazy(() => import('@/pages/MadeForYouPage'));
 const SearchPage = lazy(() => import('@/pages/SearchPage'));
 const SongPage = lazy(() => import('@/pages/SongPage'));
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
       { path: 'settings', element: <SettingsPage /> },
       { path: 'cache-info', element: <CacheInfoPage /> },
       { path: 'about', element: <AboutPage /> },
+      { path: 'download', element: <DownloadPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

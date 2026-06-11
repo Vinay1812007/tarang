@@ -6,7 +6,17 @@ export interface UpdateInfo {
   apkUrl: string;
 }
 
-const MANIFEST_URL = 'https://ai.sirimillavinay.online/version.json';
+// The site may be served from either hostname; first reachable wins.
+const MANIFEST_HOSTS = [
+  'https://vinax.sirimillavinay.online',
+  'https://ai.sirimillavinay.online',
+];
+
+/** Stable always-latest APK locations, in preference order. */
+export const APK_URLS = [
+  'https://update.vinax.sirimillavinay.online/vinax.apk',
+  'https://github.com/Vinay1812007/VinaX/releases/latest/download/vinax.apk',
+];
 
 function newer(a: string, b: string): boolean {
   const pa = a.split('.').map(Number);
@@ -25,18 +35,21 @@ function newer(a: string, b: string): boolean {
  */
 export async function checkForUpdate(): Promise<UpdateInfo | null> {
   if (!isNativePlatform()) return null;
-  try {
-    const res = await fetch(`${MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { version?: string; apk?: string };
-    if (!data.version || !data.apk) return null;
-    if (newer(data.version, __APP_VERSION__)) {
-      return { latest: data.version, current: __APP_VERSION__, apkUrl: data.apk };
+  for (const host of MANIFEST_HOSTS) {
+    try {
+      const res = await fetch(`${host}/version.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const data = (await res.json()) as { version?: string; apk?: string };
+      if (!data.version) continue;
+      if (newer(data.version, __APP_VERSION__)) {
+        return { latest: data.version, current: __APP_VERSION__, apkUrl: data.apk ?? APK_URLS[0] };
+      }
+      return null;
+    } catch {
+      /* try next host */
     }
-    return null;
-  } catch {
-    return null;
   }
+  return null;
 }
 
 export type InstallPhase = 'downloading' | 'installing';
@@ -57,13 +70,27 @@ export async function downloadAndInstall(
     import('@capacitor-community/file-opener'),
   ]);
   onPhase('downloading');
-  const res = await CapacitorHttp.get({
-    url: apkUrl,
-    responseType: 'blob', // returns base64 in res.data
-    headers: { Accept: 'application/octet-stream' },
-  });
-  if (res.status !== 200 || typeof res.data !== 'string' || res.data.length < 1000) {
-    throw new Error(`Download failed (HTTP ${res.status})`);
+  // Try the update domain first, then fall back to GitHub directly.
+  const candidates = [...new Set([apkUrl, ...APK_URLS])];
+  let res: { status: number; data: unknown } | null = null;
+  let lastError = '';
+  for (const url of candidates) {
+    try {
+      res = await CapacitorHttp.get({
+        url,
+        responseType: 'blob', // returns base64 in res.data
+        headers: { Accept: 'application/octet-stream' },
+      });
+      if (res.status === 200 && typeof res.data === 'string' && res.data.length > 1000) break;
+      lastError = `HTTP ${res.status}`;
+      res = null;
+    } catch (err) {
+      lastError = String(err);
+      res = null;
+    }
+  }
+  if (!res || typeof res.data !== 'string') {
+    throw new Error(`Download failed (${lastError || 'no source reachable'})`);
   }
   await Filesystem.writeFile({
     path: 'vinax-update.apk',

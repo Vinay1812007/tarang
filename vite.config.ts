@@ -17,7 +17,7 @@ function versionManifest(): Plugin {
         out,
         JSON.stringify({
           version: pkg.version,
-          apk: 'https://github.com/Vinay1812007/VinaX/releases/latest/download/vinax.apk',
+          apk: 'https://update.vinax.sirimillavinay.online/vinax.apk',
         }),
       );
     },
