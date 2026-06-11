@@ -1,4 +1,4 @@
-import { getSongSuggestions, searchSongs } from '@/services/api';
+import { getAlbum, getSongSuggestions, searchSongs } from '@/services/api';
 import { topArtists, topLanguages } from '@/services/personalization/profile';
 import { trendingSeed } from '@/constants/seeds';
 import type { Candidate, RecommendationContext } from './types';
@@ -41,6 +41,18 @@ export async function gatherCandidates(ctx: RecommendationContext): Promise<Cand
     tasks.push(
       safe(getSongSuggestions(fav.id, 10), []).then((songs) =>
         songs.map((song) => ({ song, source: 'related' as const, seedTitle: fav.title })),
+      ),
+    );
+  }
+
+  // 2b. Favorite-album catalogs: the rest of albums you favorite songs from.
+  const favAlbumIds = [...new Set(
+    ctx.favorites.map((f) => f.album?.id).filter((id): id is string => !!id),
+  )].slice(0, 2);
+  for (const albumId of favAlbumIds) {
+    tasks.push(
+      safe(getAlbum(albumId), null).then((album) =>
+        (album?.songs ?? []).map((song) => ({ song, source: 'favorite-album' as const, seedTitle: album?.title })),
       ),
     );
   }

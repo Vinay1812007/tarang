@@ -153,3 +153,21 @@ export function lowSkipScore(a: Affinity): number {
   if (total < 3) return 0.5;
   return a.completes / total;
 }
+
+/** Most recent listen timestamp across the given artists, or null. */
+export function artistLastSeen(
+  profile: TasteProfile,
+  artistIds: string[],
+  artistNames: string[],
+): number | null {
+  let last: number | null = null;
+  for (const id of artistIds) {
+    const a = profile.artists[id];
+    if (a && (last == null || a.lastTs > last)) last = a.lastTs;
+  }
+  for (const name of artistNames) {
+    const a = profile.artists[`name:${name.toLowerCase()}`];
+    if (a && (last == null || a.lastTs > last)) last = a.lastTs;
+  }
+  return last;
+}

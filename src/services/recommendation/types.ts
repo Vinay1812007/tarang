@@ -4,6 +4,7 @@ import type { TasteProfile } from '@/services/personalization/profile';
 export type CandidateSource =
   | 'related'
   | 'favorite-artist'
+  | 'favorite-album'
   | 'trending'
   | 'rediscovery'
   | 'history';

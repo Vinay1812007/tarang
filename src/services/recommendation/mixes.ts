@@ -31,10 +31,16 @@ export function buildMixes(ranked: ScoredCandidate[], ctx: RecommendationContext
 
   const take = (pred: (s: ScoredCandidate) => boolean, n = MIX_SIZE, allowReuse = false) => {
     const picked: ScoredCandidate[] = [];
+    const perArtist = new Map<string, number>();
     for (const s of ranked) {
       if (picked.length >= n) break;
       if (!allowReuse && used.has(s.candidate.song.id)) continue;
-      if (pred(s)) picked.push(s);
+      if (!pred(s)) continue;
+      // Diversity guard: a single artist never dominates a shelf.
+      const artistKey = s.candidate.song.artists[0]?.name.toLowerCase() ?? '';
+      if (artistKey && (perArtist.get(artistKey) ?? 0) >= 3) continue;
+      perArtist.set(artistKey, (perArtist.get(artistKey) ?? 0) + 1);
+      picked.push(s);
     }
     picked.forEach((s) => used.add(s.candidate.song.id));
     return picked;

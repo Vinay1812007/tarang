@@ -1,4 +1,5 @@
 import {
+  artistLastSeen,
   artistWeight,
   languageWeight,
   lowSkipScore,
@@ -9,6 +10,7 @@ import type { Candidate, ReasonComponent, RecommendationContext, ScoredCandidate
 const SOURCE_BOOST: Record<Candidate['source'], number> = {
   related: 0.18,
   'favorite-artist': 0.14,
+  'favorite-album': 0.12,
   rediscovery: 0.1,
   trending: 0.06,
   history: 0.0,
@@ -47,6 +49,16 @@ export function scoreCandidate(c: Candidate, ctx: RecommendationContext): Scored
     ) * 0.3 * personalBlend;
   if (artW > 0.02) reasons.push({ kind: 'artist', weight: artW, detail: song.artists[0]?.name });
   score += artW;
+
+  // Recency boost: artists you've played in the last week stay "hot".
+  const lastSeen = artistLastSeen(
+    profile,
+    song.artists.map((a) => a.id).filter(Boolean),
+    song.artists.map((a) => a.name),
+  );
+  if (lastSeen && Date.now() - lastSeen < 7 * 86_400_000) {
+    score += 0.05 * personalBlend;
+  }
 
   const pop = song.playCount ? Math.min(Math.log10(song.playCount + 1) / 8, 1) * 0.15 : 0.04;
   reasons.push({ kind: 'popularity', weight: pop });
