@@ -22,6 +22,18 @@ type NativePlugin = typeof import('@jofr/capacitor-media-session').MediaSession;
 
 const native = isNativePlatform();
 let pluginPromise: Promise<NativePlugin> | null = null;
+let failureReported = false;
+
+function reportNativeFailure(err: unknown): void {
+  if (import.meta.env.DEV) console.warn('[tarang:media-session]', err);
+  if (!failureReported) {
+    failureReported = true;
+    // Surface once — a broken native media session should not be invisible.
+    void import('@/store/toastStore').then(({ toast }) =>
+      toast('Media controls unavailable on this device'),
+    );
+  }
+}
 
 function plugin(): Promise<NativePlugin> {
   if (!pluginPromise) {
@@ -43,7 +55,7 @@ export function setMediaHandlers(h: MediaHandlers): void {
         if (d.seekTime != null) h.seekTo(d.seekTime);
       });
       await p.setActionHandler({ action: 'stop' }, () => h.pause());
-    }).catch(() => undefined);
+    }).catch(reportNativeFailure);
     return;
   }
   if (!webSupported()) return;
@@ -71,7 +83,7 @@ export function updateMediaMetadata(song: Song | null): void {
         album: song.album?.name ?? 'Tarang',
         artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
       }),
-    ).catch(() => undefined);
+    ).catch(reportNativeFailure);
     return;
   }
   if (!webSupported()) return;
@@ -87,7 +99,7 @@ export function updateMediaMetadata(song: Song | null): void {
 
 export function updatePlaybackState(playing: boolean): void {
   if (native) {
-    void plugin().then((p) => p.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })).catch(() => undefined);
+    void plugin().then((p) => p.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })).catch(reportNativeFailure);
     return;
   }
   if (!webSupported()) return;
@@ -103,7 +115,7 @@ export function updatePositionState(duration: number, position: number, rate: nu
   if (native) {
     if (Math.abs(position - lastSentPosition) < 1) return;
     lastSentPosition = position;
-    void plugin().then((p) => p.setPositionState({ duration, position, playbackRate: rate })).catch(() => undefined);
+    void plugin().then((p) => p.setPositionState({ duration, position, playbackRate: rate })).catch(reportNativeFailure);
     return;
   }
   if (!webSupported() || !navigator.mediaSession.setPositionState) return;

@@ -10,7 +10,7 @@ import {
   updatePositionState,
 } from '@/services/media-session';
 import { recordComplete, recordPlay, recordQueueAdd, recordSkip } from '@/services/personalization/updater';
-import { haptic } from '@/services/native';
+import { checkNotificationOnFirstPlay, haptic } from '@/services/native';
 import { toast } from './toastStore';
 import { useHistoryStore } from './historyStore';
 import { useSettingsStore } from './settingsStore';
@@ -80,6 +80,8 @@ export const usePlayerStore = create<PlayerState>()(
           sessionPlayed.add(song.id);
           recordPlay(song);
           useHistoryStore.getState().addPlay(song);
+          // Android 13+: the playback notification needs this permission.
+          void checkNotificationOnFirstPlay(toast);
         }
         preloadUpcoming();
       }

@@ -3,25 +3,53 @@ import { Capacitor } from '@capacitor/core';
 export const isNativePlatform = (): boolean => Capacitor.isNativePlatform();
 export const isAndroid = (): boolean => Capacitor.getPlatform() === 'android';
 
-let permissionAsked = false;
+function devLog(...args: unknown[]): void {
+  if (import.meta.env.DEV) console.warn('[tarang:native]', ...args);
+}
 
 /**
  * Android 13+ requires POST_NOTIFICATIONS for the media playback notification
- * to be visible. We ask once, on app open, via the LocalNotifications plugin
- * (its permission maps to the system notification permission). Denial is
- * fine — playback still works, only the notification is hidden.
+ * to be visible. We check + request via the LocalNotifications plugin (its
+ * permission maps to the system notification permission).
+ *
+ * Returns 'granted' | 'denied' | 'unsupported'.
  */
-export async function requestNotificationPermissionOnce(): Promise<void> {
-  if (!isNativePlatform() || permissionAsked) return;
-  permissionAsked = true;
+export async function ensureNotificationPermission(): Promise<'granted' | 'denied' | 'unsupported'> {
+  if (!isNativePlatform()) return 'unsupported';
   try {
     const { LocalNotifications } = await import('@capacitor/local-notifications');
-    const status = await LocalNotifications.checkPermissions();
+    let status = await LocalNotifications.checkPermissions();
     if (status.display !== 'granted') {
-      await LocalNotifications.requestPermissions();
+      status = await LocalNotifications.requestPermissions();
     }
-  } catch {
-    // Plugin unavailable (web/dev) — ignore.
+    return status.display === 'granted' ? 'granted' : 'denied';
+  } catch (err) {
+    devLog('notification permission check failed', err);
+    return 'unsupported';
+  }
+}
+
+let launchAsked = false;
+
+/** Ask once on app open; playback start re-checks (see playerStore). */
+export async function requestNotificationPermissionOnce(): Promise<void> {
+  if (launchAsked) return;
+  launchAsked = true;
+  await ensureNotificationPermission();
+}
+
+/**
+ * Called when playback starts: if notifications are denied, the media
+ * controls notification cannot appear — tell the user once how to fix it.
+ */
+let playbackChecked = false;
+
+export async function checkNotificationOnFirstPlay(notify: (msg: string) => void): Promise<void> {
+  if (!isNativePlatform() || playbackChecked) return;
+  playbackChecked = true;
+  const result = await ensureNotificationPermission();
+  if (result === 'denied') {
+    notify('Enable notifications in Android settings to get playback controls');
   }
 }
 
