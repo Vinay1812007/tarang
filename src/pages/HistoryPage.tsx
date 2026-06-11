@@ -4,6 +4,8 @@ import { useHistoryStore } from '@/store/historyStore';
 import { SongRow } from '@/components/SongRow';
 import { EmptyState } from '@/components/States';
 import { relativeTime } from '@/utils/format';
+import { usePlayerStore } from '@/store/playerStore';
+import { PlayIcon } from '@/components/Icons';
 import type { HistoryEntry } from '@/types';
 
 function dayLabel(ts: number): string {
@@ -19,6 +21,7 @@ export default function HistoryPage() {
   usePageTitle('History');
   const entries = useHistoryStore((s) => s.entries);
   const clearHistory = useHistoryStore((s) => s.clearHistory);
+  const playQueue = usePlayerStore((s) => s.playQueue);
 
   const groups = useMemo(() => {
     const out: Array<{ label: string; items: Array<{ entry: HistoryEntry; index: number }> }> = [];
@@ -41,9 +44,14 @@ export default function HistoryPage() {
           <p className="text-sm text-ink-400 mt-1">Stored only on this device</p>
         </div>
         {entries.length > 0 && (
-          <button onClick={clearHistory} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-red-400 hover:text-red-300">
-            Clear history
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => playQueue(allSongs, 0)} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-ember-500 text-ink-950 text-sm font-bold hover:bg-ember-400">
+              <PlayIcon className="w-3.5 h-3.5" /> Play all
+            </button>
+            <button onClick={clearHistory} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-red-400 hover:text-red-300">
+              Clear
+            </button>
+          </div>
         )}
       </div>
       {entries.length === 0 ? (

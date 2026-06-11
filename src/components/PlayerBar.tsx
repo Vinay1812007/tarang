@@ -9,6 +9,7 @@ import { FavButton } from './FavButton';
 import { IconButton } from './IconButton';
 import { Marquee } from './Marquee';
 import {
+  ClockIcon,
   NextIcon,
   PauseIcon,
   PlayIcon,
@@ -29,8 +30,21 @@ export function PlayerBar() {
   const muted = usePlayerStore((s) => s.muted);
   const currentTime = usePlayerStore((s) => s.currentTime);
   const duration = usePlayerStore((s) => s.duration);
-  const { togglePlay, next, prev, cycleRepeat, toggleShuffle, setVolume, toggleMute } =
+  const sleepAt = usePlayerStore((s) => s.sleepAt);
+  const sleepAfterTrack = usePlayerStore((s) => s.sleepAfterTrack);
+  const { togglePlay, next, prev, cycleRepeat, toggleShuffle, setVolume, toggleMute, setSleepTimer, setSleepAfterTrack } =
     usePlayerStore.getState();
+
+  const sleepActive = sleepAt != null || sleepAfterTrack;
+  const sleepLabel = sleepAfterTrack
+    ? 'end'
+    : sleepAt
+      ? `${Math.max(1, Math.ceil((sleepAt - Date.now()) / 60_000))}m`
+      : '';
+  const cancelSleep = () => {
+    setSleepTimer(null);
+    setSleepAfterTrack(false);
+  };
   const navigate = useNavigate();
   const [accent, setAccent] = useState<string | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
@@ -92,6 +106,11 @@ export function PlayerBar() {
                 <span className="block text-[11px] text-white/70 truncate">{song.subtitle}</span>
               </span>
             </button>
+            {sleepActive && (
+              <button onClick={cancelSleep} aria-label="Cancel sleep timer" className="flex items-center gap-1 px-2 py-1 rounded-full bg-ink-950/40 text-[11px] font-bold text-white/90">
+                <ClockIcon className="w-3.5 h-3.5" /> {sleepLabel}
+              </button>
+            )}
             <FavButton song={song} className="text-white/80" />
             <IconButton
               label={isPlaying ? 'Pause' : 'Play'}
@@ -158,6 +177,11 @@ export function PlayerBar() {
           </div>
 
           <div className="hidden md:flex items-center gap-1 w-60 lg:w-80 justify-end">
+            {sleepActive && (
+              <button onClick={cancelSleep} title="Cancel sleep timer" className="flex items-center gap-1 px-2 py-1 mr-1 rounded-full border border-ink-600 text-[11px] font-bold text-ember-400 hover:border-ember-500">
+                <ClockIcon className="w-3.5 h-3.5" /> {sleepLabel}
+              </button>
+            )}
             <Link to="/queue" aria-label="Queue" title="Queue" className="inline-flex items-center justify-center w-8 h-8 rounded-full text-ink-300 hover:text-ink-100 hover:bg-ink-700/70">
               <QueueIcon className="w-4 h-4" />
             </Link>

@@ -88,6 +88,14 @@ export default function SettingsPage() {
         <Row label="Keep screen on in player" note="Holds a screen wake lock while the full-screen player is open and playing.">
           <Toggle on={s.keepScreenOn} onChange={s.setKeepScreenOn} label="Keep screen on in player" />
         </Row>
+        <Row label="Keyboard shortcuts" note="Space, arrows, N/P, M, S, R, F — or press ? anywhere.">
+          <button
+            onClick={() => window.dispatchEvent(new Event('vinax:shortcuts'))}
+            className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
+          >
+            View
+          </button>
+        </Row>
         <Row label="Audio quality" note="Picks the closest available stream; falls back automatically.">
           <div className="flex gap-1.5">
             {(['low', 'medium', 'high'] as AudioQualityPref[]).map((q) => (

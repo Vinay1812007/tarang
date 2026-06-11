@@ -42,6 +42,7 @@ export interface PlayerState {
   enqueueAll(songs: Song[]): void;
   removeAt(index: number): void;
   moveInQueue(from: number, to: number): void;
+  clearPlayed(): void;
   clearQueue(): void;
   togglePlay(): void;
   next(manual?: boolean): void;
@@ -275,6 +276,13 @@ export const usePlayerStore = create<PlayerState>()(
           else if (from < index && to >= index) newIndex = index - 1;
           else if (from > index && to <= index) newIndex = index + 1;
           set({ queue: next, index: newIndex });
+        },
+
+        clearPlayed: () => {
+          const { queue, index } = get();
+          if (index <= 0) return;
+          set({ queue: queue.slice(index), index: 0 });
+          toast(`Removed ${index} played songs`);
         },
 
         clearQueue: () => {

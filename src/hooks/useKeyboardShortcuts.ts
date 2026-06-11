@@ -27,6 +27,14 @@ export function useKeyboardShortcuts(): void {
         case 'ArrowLeft':
           p.seek(Math.max(p.currentTime - 10, 0));
           break;
+        case 'ArrowUp':
+          e.preventDefault();
+          p.setVolume(p.volume + 0.05);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          p.setVolume(p.volume - 0.05);
+          break;
         case 'n':
           p.next(true);
           break;

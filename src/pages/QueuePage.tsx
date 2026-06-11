@@ -13,7 +13,7 @@ export default function QueuePage() {
   usePageTitle('Queue');
   const queue = usePlayerStore((s) => s.queue);
   const index = usePlayerStore((s) => s.index);
-  const { playAt, removeAt, clearQueue, moveInQueue } = usePlayerStore.getState();
+  const { playAt, removeAt, clearQueue, moveInQueue, clearPlayed } = usePlayerStore.getState();
   const current = useCurrentSong();
   const currentRowRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +43,11 @@ export default function QueuePage() {
             <button onClick={saveAsCollection} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-ember-500 hover:text-ember-400">
               Save as collection
             </button>
+            {index > 0 && (
+              <button onClick={clearPlayed} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-ink-400">
+                Remove played
+              </button>
+            )}
             <button onClick={clearQueue} className="px-4 py-2 rounded-full border border-ink-600 text-sm text-ink-200 hover:border-red-400 hover:text-red-300">
               Clear
             </button>

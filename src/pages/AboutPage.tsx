@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { canInstall, onInstallAvailable, promptInstall } from '@/utils/installPrompt';
+import { shareLink } from '@/utils/share';
+import { toast } from '@/store/toastStore';
 import { API_BASES } from '@/constants/endpoints';
 
 export default function AboutPage() {
@@ -13,12 +15,18 @@ export default function AboutPage() {
         <img src="/icons/icon.svg" alt="" className="w-16 h-16 rounded-2xl" />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">VinaX</h1>
-          <p className="text-sm text-ink-400">Music tuned to you · v1.3.0</p>
+          <p className="text-sm text-ink-400">Music tuned to you · v1.4.0</p>
         </div>
+        <button
+          onClick={() => void shareLink('/', 'VinaX — music tuned to you').then((r) => r === 'copied' && toast('Link copied'))}
+          className="ml-auto px-5 py-2.5 rounded-full border border-ink-600 text-sm font-semibold hover:border-ink-400"
+        >
+          Share app
+        </button>
         {installable && (
           <button
             onClick={() => void promptInstall().then((ok) => ok && setInstallable(false))}
-            className="ml-auto px-5 py-2.5 rounded-full bg-ember-500 text-ink-950 font-bold hover:bg-ember-400"
+            className="px-5 py-2.5 rounded-full bg-ember-500 text-ink-950 font-bold hover:bg-ember-400"
           >
             Install app
           </button>

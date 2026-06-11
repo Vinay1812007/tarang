@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
@@ -6,6 +6,10 @@ import { ShelfSkeleton, CardGridSkeleton } from '@/components/Skeletons';
 import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
 import { Chip } from '@/components/Chip';
+import { IconButton } from '@/components/IconButton';
+import { MoonIcon, SettingsIcon, SunIcon, SparkleIcon } from '@/components/Icons';
+import { useHistoryStore } from '@/store/historyStore';
+import { toast } from '@/store/toastStore';
 import {
   useContinueListening,
   useTimeOfDayShelf,
@@ -55,7 +59,16 @@ function greeting(): string {
 export default function HomePage() {
   usePageTitle('Home');
   const pinned = useSettingsStore((s) => s.pinnedLanguages);
+  const theme = useSettingsStore((s) => s.theme);
+  const setTheme = useSettingsStore((s) => s.setTheme);
+  const navigate = useNavigate();
   const region = useRegion();
+  const historyEntries = useHistoryStore((s) => s.entries);
+
+  // This week's listening, from local history only.
+  const weekAgo = Date.now() - 7 * 86_400_000;
+  const weekEntries = historyEntries.filter((e) => e.ts >= weekAgo);
+  const weekMinutes = Math.round(weekEntries.reduce((acc, e) => acc + (e.song.duration ?? 180), 0) / 60);
   const continueListening = useContinueListening();
   const yourArtists = useYourArtists();
   const favorites = useLibraryStore((s) => s.favorites);
@@ -69,12 +82,23 @@ export default function HomePage() {
 
   return (
     <div className="max-w-screen-2xl mx-auto">
-      {/* Mobile brand header — the sidebar (with the logo) is hidden on phones */}
-      <div className="md:hidden flex items-center gap-2.5 mb-4 pt-1">
-        <img src="/icons/icon.svg" alt="" className="w-9 h-9 rounded-xl" />
-        <span className="text-2xl font-bold tracking-tight">
-          VinaX<span className="text-ember-500">.</span>
-        </span>
+      {/* Home header: brand (mobile) + quick theme & settings (all sizes) */}
+      <div className="flex items-center justify-between mb-4 pt-1">
+        <div className="md:hidden flex items-center gap-2.5">
+          <img src="/icons/icon.svg" alt="" className="w-9 h-9 rounded-xl" />
+          <span className="text-2xl font-bold tracking-tight">
+            VinaX<span className="text-ember-500">.</span>
+          </span>
+        </div>
+        <div className="hidden md:block" />
+        <div className="flex items-center gap-1">
+          <IconButton label="Toggle theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            {theme === 'dark' ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5" />}
+          </IconButton>
+          <IconButton label="Settings" onClick={() => navigate('/settings')}>
+            <SettingsIcon className="w-5 h-5" />
+          </IconButton>
+        </div>
       </div>
       {/* Hero — gradient shifts with the time of day */}
       <div className={`rounded-3xl bg-gradient-to-br border border-ink-700 p-6 sm:p-8 mb-8 ${
@@ -88,8 +112,26 @@ export default function HomePage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{greeting()}</h1>
         <p className="text-ink-300 mt-1 text-sm">
           {region?.country ? `Tuned for ${region.country}` : 'Tuned to you'} · no account, all local
+          {weekEntries.length > 0 && (
+            <span className="text-ink-400"> · this week: {weekEntries.length} plays ≈ {weekMinutes} min</span>
+          )}
         </p>
         <div className="flex gap-2 mt-4 flex-wrap">
+          <button
+            onClick={() => {
+              const pool = [...(trending.data ?? []), ...feedSongs, ...continueListening];
+              if (!pool.length) {
+                toast('Still loading — try again in a second');
+                return;
+              }
+              const i = Math.floor(Math.random() * pool.length);
+              playQueueFeed(pool, i);
+              toast(`Surprise: ${pool[i].title}`);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-ember-500 text-ink-950 text-sm font-bold hover:bg-ember-400 active:scale-95"
+          >
+            <SparkleIcon className="w-4 h-4" /> Surprise me
+          </button>
           {pinned.map((l) => (
             <Link key={l} to="/languages">
               <Chip active>{languageLabel(l)}</Chip>

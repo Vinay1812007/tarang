@@ -6,6 +6,7 @@ import { MobileBackBar } from '@/components/MobileBackBar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { Toasts } from '@/components/Toasts';
 import { OnboardingSheet } from '@/components/OnboardingSheet';
+import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { PageSkeleton } from '@/components/Skeletons';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -86,6 +87,7 @@ export function AppLayout() {
       </div>
       <Toasts />
       <OnboardingSheet />
+      <ShortcutsModal />
       {!isFullScreenPlayer && (
         <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)] bg-ink-950/95">
           <PlayerBar />
