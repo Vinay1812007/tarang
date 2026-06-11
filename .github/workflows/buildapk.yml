@@ -40,6 +40,19 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Install Tarang launcher icons
+        run: |
+          cp -rv android-res/* android/app/src/main/res/
+          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+      - name: Verify Capacitor plugins are registered
+        run: |
+          P=android/app/src/main/assets/capacitor.plugins.json
+          cat "$P"
+          for plugin in MediaSession LocalNotifications Haptics; do
+            grep -q "$plugin" "$P" || { echo "::error::$plugin missing from $P"; exit 1; }
+          done
+
       - name: Patch AndroidManifest (media notification + Bluetooth controls)
         run: |
           M=android/app/src/main/AndroidManifest.xml
