@@ -1,10 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/utils/cn';
-import { CompassIcon, HomeIcon, LibraryIcon, SearchIcon, SparkleIcon } from './Icons';
+import { HomeIcon, LibraryIcon, SearchIcon, SparkleIcon } from './Icons';
 
 const items = [
   { to: '/', label: 'Home', icon: HomeIcon },
-  { to: '/discover', label: 'Discover', icon: CompassIcon },
   { to: '/search', label: 'Search', icon: SearchIcon },
   { to: '/made-for-you', label: 'For You', icon: SparkleIcon },
   { to: '/library', label: 'Library', icon: LibraryIcon },

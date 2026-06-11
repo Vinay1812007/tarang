@@ -2,6 +2,7 @@ import { Suspense, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { BottomNav } from '@/components/BottomNav';
+import { MobileBackBar } from '@/components/MobileBackBar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { Toasts } from '@/components/Toasts';
 import { OnboardingSheet } from '@/components/OnboardingSheet';
@@ -14,12 +15,27 @@ import { runMigrations } from '@/services/storage/local';
 import { resolveRegion } from '@/services/location/inference';
 import { readBrowserSignals } from '@/services/location/browserSignals';
 import { defaultLanguagesForCountry } from '@/constants/regions';
-import { requestNotificationPermissionOnce } from '@/services/native';
+import { isNativePlatform, requestNotificationPermissionOnce } from '@/services/native';
 import { installDeterrence } from '@/utils/deterrence';
 
 export function AppLayout() {
   const theme = useSettingsStore((s) => s.theme);
   useKeyboardShortcuts();
+
+  // Android hardware back: pop history, or minimize on the root screen.
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+    let remove: (() => void) | null = null;
+    void import('@capacitor/app').then(({ App }) => {
+      void App.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack && window.history.length > 1) window.history.back();
+        else void App.minimizeApp();
+      }).then((handle) => {
+        remove = () => void handle.remove();
+      });
+    });
+    return () => remove?.();
+  }, []);
 
   // One-time bootstrap.
   useEffect(() => {
@@ -58,6 +74,7 @@ export function AppLayout() {
       <div className="flex flex-1 min-h-0">
         <Sidebar />
         <main className="flex-1 overflow-y-auto px-4 md:px-8 pt-4 pb-44 md:pb-28">
+          <MobileBackBar />
           <ErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <Outlet />
