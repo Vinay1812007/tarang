@@ -99,14 +99,26 @@ export function setMediaHandlers(h: MediaHandlers): void {
 export function updateMediaMetadata(song: Song | null): void {
   if (native) {
     if (!song) return;
-    void plugin().then((p) =>
-      p.setMetadata({
+    void plugin().then(async (p) => {
+      const base = {
         title: song.title,
         artist: song.subtitle,
         album: song.album?.name ?? 'VinaX',
-        artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
-      }).then(() => record('setMetadata', true)),
-    ).catch((err) => {
+      };
+      try {
+        await p.setMetadata({
+          ...base,
+          artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
+        });
+        record('setMetadata', true);
+      } catch (err) {
+        // Artwork download can fail natively (CDN/network) — never lose the
+        // title/artist because of a missing image.
+        record('setMetadata(artwork)', false, String(err));
+        await p.setMetadata(base);
+        record('setMetadata(no-art)', true);
+      }
+    }).catch((err) => {
       record('setMetadata', false, String(err));
       reportNativeFailure(err);
     });

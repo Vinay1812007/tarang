@@ -84,6 +84,15 @@ export const usePlayerStore = create<PlayerState>()(
           useHistoryStore.getState().addPlay(song);
           // Android 13+: the playback notification needs this permission.
           void checkNotificationOnFirstPlay(toast);
+          // Re-assert after the native service finishes binding — first-play
+          // updates can otherwise race the service connection.
+          window.setTimeout(() => {
+            const cur = get();
+            if (cur.queue[cur.index]?.id === song.id) {
+              updateMediaMetadata(song);
+              updatePlaybackState(cur.isPlaying);
+            }
+          }, 1200);
         }
         preloadUpcoming();
       }
