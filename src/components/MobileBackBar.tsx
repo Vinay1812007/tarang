@@ -8,7 +8,7 @@ export function MobileBackBar() {
   const navigate = useNavigate();
   if (!DETAIL_ROUTE.test(pathname)) return null;
   return (
-    <div className="md:hidden sticky top-0 z-30 -mx-4 px-2 py-1 bg-ink-900/85 backdrop-blur">
+    <div className="md:hidden sticky top-0 z-30 -mx-4 px-2 py-1 glass">
       <button
         onClick={() => navigate(-1)}
         aria-label="Back"

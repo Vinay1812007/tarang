@@ -69,7 +69,7 @@ export function TrackMenu({ song }: { song: Song }) {
           <div
             role="menu"
             className={cn(
-              'absolute right-0 z-50 w-48 rounded-xl border border-ink-700 bg-ink-850 shadow-xl py-1 animate-fade-up max-h-72 overflow-y-auto',
+              'absolute right-0 z-50 w-48 rounded-xl glass py-1 animate-fade-up max-h-72 overflow-y-auto',
               flipUp ? 'bottom-full mb-1' : 'mt-1',
             )}
           >

@@ -69,3 +69,47 @@ input[type='range']::-moz-range-track {
 input[type='range']::-moz-range-thumb {
   @apply w-3 h-3 border-0 rounded-full bg-ember-500;
 }
+
+/* ---------- VinaX glass (iOS-style translucent surfaces) ---------- */
+.glass {
+  @apply backdrop-blur-xl bg-ink-850/70 border border-white/10 shadow-lg shadow-black/20;
+}
+.glass-strong {
+  @apply backdrop-blur-2xl bg-ink-950/70 border-t border-white/10;
+}
+
+/* ---------- Scroll-driven reveal (no JS; safe fallback) ---------- */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal-up 0.6s ease-out both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+/* ---------- Slow ambient gradient drift for the hero ---------- */
+@keyframes hue-drift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.hero-animated {
+  background-size: 200% 200%;
+  animation: hue-drift 14s ease-in-out infinite;
+}
+
+/* ---------- Reduced motion: respect the user ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .hero-animated, .animate-marquee, .animate-fade-up {
+    animation: none !important;
+  }
+}

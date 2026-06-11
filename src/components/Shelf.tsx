@@ -12,7 +12,7 @@ interface Props {
 
 export function Shelf({ title, explanation, seeAllTo, action, children }: Props) {
   return (
-    <section className="mb-8">
+    <section className="mb-8 reveal">
       <div className="flex items-end justify-between mb-3 gap-3">
         <div className="min-w-0">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight truncate">{title}</h2>

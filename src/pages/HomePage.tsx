@@ -104,7 +104,7 @@ export default function HomePage() {
       <UpdateBanner />
 
       {/* Hero — gradient shifts with the time of day */}
-      <div className={`rounded-3xl bg-gradient-to-br border border-ink-700 p-6 sm:p-8 mb-8 ${
+      <div className={`rounded-3xl bg-gradient-to-br border border-white/10 backdrop-blur-xl p-6 sm:p-8 mb-8 hero-animated ${
         ({
           morning: 'from-ember-600/25 via-ink-850 to-ink-900',
           afternoon: 'from-tide-500/15 via-ink-850 to-ink-900',

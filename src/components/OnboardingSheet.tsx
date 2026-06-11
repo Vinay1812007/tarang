@@ -28,7 +28,7 @@ export function OnboardingSheet() {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-ink-950/80 backdrop-blur-sm p-0 sm:p-6">
-      <div className="w-full sm:max-w-md bg-ink-850 border border-ink-700 rounded-t-3xl sm:rounded-3xl p-6 animate-fade-up">
+      <div className="w-full sm:max-w-md glass rounded-t-3xl sm:rounded-3xl p-6 animate-fade-up">
         <div className="flex items-center gap-3 mb-2">
           <img src="/icons/icon.svg" alt="" className="w-10 h-10 rounded-xl" />
           <div>

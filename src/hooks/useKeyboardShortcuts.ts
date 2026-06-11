@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { usePlayerStore } from '@/store/playerStore';
 import { useLibraryStore } from '@/store/libraryStore';
+import { isNativePlatform } from '@/services/native';
 
 function isTyping(e: KeyboardEvent): boolean {
   const t = e.target as HTMLElement;
@@ -13,6 +14,7 @@ function isTyping(e: KeyboardEvent): boolean {
  */
 export function useKeyboardShortcuts(): void {
   useEffect(() => {
+    if (isNativePlatform()) return; // hardware keyboards are a desktop concern
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e)) return;
       const p = usePlayerStore.getState();

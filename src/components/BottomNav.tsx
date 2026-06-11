@@ -11,7 +11,7 @@ const items = [
 
 export function BottomNav() {
   return (
-    <nav className="md:hidden bg-ink-950/95 backdrop-blur border-t border-ink-800">
+    <nav className="md:hidden glass-strong">
       <ul className="flex">
         {items.map(({ to, label, icon: Icon }) => (
           <li key={to} className="flex-1">

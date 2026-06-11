@@ -20,7 +20,7 @@ export function MediaCard({ to, image, title, subtitle, round, fluid, onPlay }: 
       to={to}
       data-deter-context
       className={cn(
-        'group rounded-2xl p-2.5 hover:bg-ink-850 transition-colors animate-fade-up',
+        'group rounded-2xl p-2.5 hover:bg-ink-850/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 animate-fade-up',
         fluid ? 'w-full' : 'w-36 sm:w-40 shrink-0',
       )}
     >

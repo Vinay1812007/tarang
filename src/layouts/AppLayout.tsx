@@ -80,16 +80,18 @@ export function AppLayout() {
           <MobileBackBar />
           <ErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
-              <Outlet />
+              <div key={pathname} className="animate-fade-up">
+                <Outlet />
+              </div>
             </Suspense>
           </ErrorBoundary>
         </main>
       </div>
       <Toasts />
       <OnboardingSheet />
-      <ShortcutsModal />
+      {!isNativePlatform() && <ShortcutsModal />}
       {!isFullScreenPlayer && (
-        <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)] bg-ink-950/95">
+        <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]">
           <PlayerBar />
           <BottomNav />
         </div>
