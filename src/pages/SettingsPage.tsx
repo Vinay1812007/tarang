@@ -74,6 +74,29 @@ export default function SettingsPage() {
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">Settings</h1>
 
       <Section title="Appearance & Playback">
+        <Row label="Accent theme" note="Glass UI tint — applies everywhere instantly.">
+          <div className="flex items-center gap-2">
+            {([
+              ['ember', '#f0922e'],
+              ['ocean', '#38bdf8'],
+              ['violet', '#a78bfa'],
+              ['rose', '#fb7185'],
+              ['emerald', '#34d399'],
+            ] as Array<[string, string]>).map(([id, color]) => (
+              <button
+                key={id}
+                aria-label={`${id} theme`}
+                onClick={() => s.setAccent(id)}
+                className={
+                  s.accent === id
+                    ? 'w-8 h-8 rounded-full ring-2 ring-offset-2 ring-offset-ink-900 ring-ink-100 scale-110 transition-transform'
+                    : 'w-8 h-8 rounded-full hover:scale-110 transition-transform'
+                }
+                style={{ background: color }}
+              />
+            ))}
+          </div>
+        </Row>
         <Row label="Theme">
           <button
             onClick={() => s.setTheme(s.theme === 'dark' ? 'light' : 'dark')}

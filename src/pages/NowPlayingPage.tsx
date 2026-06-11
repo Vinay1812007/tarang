@@ -29,6 +29,7 @@ import { bestImage, FALLBACK_ART } from '@/utils/images';
 import { extractAverageColor } from '@/utils/color';
 import { acquireWakeLock, releaseWakeLock } from '@/utils/wakeLock';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useAudioOutputStore } from '@/services/audio/outputWatcher';
 import { shareLink } from '@/utils/share';
 import { toast } from '@/store/toastStore';
 import { cn } from '@/utils/cn';
@@ -59,6 +60,7 @@ export default function NowPlayingPage() {
   const [accent, setAccent] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false);
   const keepScreenOn = useSettingsStore((s) => s.keepScreenOn);
+  const externalDevice = useAudioOutputStore((s) => s.externalLabel);
   const lyrics = useSyncedLyrics(song);
 
   // Keep the screen awake while this view is open and music plays.
@@ -160,6 +162,12 @@ export default function NowPlayingPage() {
           </div>
           <FavButton song={song} className="shrink-0" />
         </div>
+
+        {externalDevice && (
+          <p className="text-[11px] font-semibold text-tide-400 mt-2 flex items-center gap-1.5">
+            🎧 Playing on {externalDevice}
+          </p>
+        )}
 
         {/* Resso-style live lyric strip */}
         {lyrics.data?.synced && (

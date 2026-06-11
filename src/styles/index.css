@@ -4,6 +4,30 @@
 
 :root {
   color-scheme: dark;
+  /* Accent themes — swapped at runtime via html[data-accent] */
+  --ember-600: 217 122 31;
+  --ember-500: 240 146 46;
+  --ember-400: 247 169 79;
+  --ember-300: 255 201 126;
+  --tide-500: 45 212 191;
+  --tide-400: 94 234 212;
+}
+
+html[data-accent='ocean'] {
+  --ember-600: 2 132 199; --ember-500: 56 189 248; --ember-400: 125 211 252; --ember-300: 186 230 253;
+  --tide-500: 52 211 153; --tide-400: 110 231 183;
+}
+html[data-accent='violet'] {
+  --ember-600: 124 58 237; --ember-500: 167 139 250; --ember-400: 196 181 253; --ember-300: 221 214 254;
+  --tide-500: 244 114 182; --tide-400: 249 168 212;
+}
+html[data-accent='rose'] {
+  --ember-600: 225 29 72; --ember-500: 251 113 133; --ember-400: 253 164 175; --ember-300: 254 205 211;
+  --tide-500: 251 191 36; --tide-400: 252 211 77;
+}
+html[data-accent='emerald'] {
+  --ember-600: 5 150 105; --ember-500: 52 211 153; --ember-400: 110 231 183; --ember-300: 167 243 208;
+  --tide-500: 251 191 36; --tide-400: 252 211 77;
 }
 
 html.light {

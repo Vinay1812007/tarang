@@ -6,6 +6,7 @@ import type { AudioQualityPref } from '@/services/audio/engine';
 
 export interface SettingsState {
   theme: 'dark' | 'light';
+  accent: string;
   autoplay: boolean;
   autoqueueSimilar: boolean;
   keepScreenOn: boolean;
@@ -21,6 +22,7 @@ export interface SettingsState {
   mutedLanguages: string[];
 
   setTheme(theme: 'dark' | 'light'): void;
+  setAccent(accent: string): void;
   setAutoplay(v: boolean): void;
   setAutoqueueSimilar(v: boolean): void;
   setKeepScreenOn(v: boolean): void;
@@ -38,6 +40,7 @@ export interface SettingsState {
 
 const defaults = {
   theme: 'dark' as const,
+  accent: 'ember',
   autoplay: true,
   autoqueueSimilar: true,
   keepScreenOn: true,
@@ -56,6 +59,7 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       ...defaults,
       setTheme: (theme) => set({ theme }),
+      setAccent: (accent) => set({ accent }),
       setAutoplay: (autoplay) => set({ autoplay }),
       setAutoqueueSimilar: (autoqueueSimilar) => set({ autoqueueSimilar }),
       setKeepScreenOn: (keepScreenOn) => set({ keepScreenOn }),

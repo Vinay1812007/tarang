@@ -8,6 +8,8 @@ import { Toasts } from '@/components/Toasts';
 import { OnboardingSheet } from '@/components/OnboardingSheet';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { UpdateDialog } from '@/components/UpdateDialog';
+import { FestiveSplash } from '@/components/FestiveSplash';
+import { initAudioOutputWatcher } from '@/services/audio/outputWatcher';
 import { checkForUpdate } from '@/services/update';
 import { useUpdateStore } from '@/store/updateStore';
 import { PageSkeleton } from '@/components/Skeletons';
@@ -24,6 +26,7 @@ import { installDeterrence } from '@/utils/deterrence';
 
 export function AppLayout() {
   const theme = useSettingsStore((s) => s.theme);
+  const accent = useSettingsStore((s) => s.accent);
   const { pathname } = useLocation();
   const isFullScreenPlayer = pathname === '/now-playing';
   useKeyboardShortcuts();
@@ -48,6 +51,7 @@ export function AppLayout() {
     runMigrations();
     usePlayerStore.getState().initEngine();
     installDeterrence();
+    initAudioOutputWatcher();
     // Android 13+: media notification needs notification permission.
     void requestNotificationPermissionOnce();
     // Mandatory update gate (native only; no-op on web).
@@ -75,7 +79,8 @@ export function AppLayout() {
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
     document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+    document.documentElement.dataset.accent = accent;
+  }, [theme, accent]);
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
@@ -96,6 +101,7 @@ export function AppLayout() {
       <OnboardingSheet />
       {!isNativePlatform() && <ShortcutsModal />}
       {isNativePlatform() && <UpdateDialog />}
+      <FestiveSplash />
       {!isFullScreenPlayer && (
         <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]">
           <PlayerBar />
