@@ -187,6 +187,10 @@ export const usePlayerStore = create<PlayerState>()(
             onPlayState: (isPlaying) => {
               set({ isPlaying });
               updatePlaybackState(isPlaying);
+              // Re-push metadata with every state flip: if an earlier attempt
+              // raced the service bind, this heals the notification.
+              const current = get().queue[get().index];
+              if (current) updateMediaMetadata(current);
             },
             onBuffering: (isBuffering) => set({ isBuffering }),
             onEnded: handleEnded,

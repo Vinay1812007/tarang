@@ -1,5 +1,9 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.10.1': [
+    '🔔 Notification now always shows song title, artist, and artwork',
+    '🛠 Hardened the native media layer against artwork download failures',
+  ],
   '1.10.0': [
     '🏠 Home feed now scrolls forever — endless picks across your languages',
     '🔔 Playback notification reliability pass for Android',
