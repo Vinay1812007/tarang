@@ -1,5 +1,11 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.11.0': [
+    '🔔 Playback notification fix for Xiaomi/HyperOS devices (main-thread media updates)',
+    '🎨 New look: deep violet-black surfaces with a hot crimson accent, lyric-forward player',
+    '🌐 Language selection in Settings rebuilt — all languages, clean layout',
+    '🛟 The app now tells you on-screen if the notification bridge misbehaves',
+  ],
   '1.10.2': [
     '🔔 Rebuilt the Android build pipeline for reliable playback notifications',
     '🧪 Deeper notification diagnostics in Settings',

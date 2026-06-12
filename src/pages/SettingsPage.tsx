@@ -76,10 +76,10 @@ export default function SettingsPage() {
         <Row label="Accent theme" note="Glass UI tint — applies everywhere instantly.">
           <div className="flex items-center gap-2">
             {([
+              ['crimson', '#fb3b5e'],
               ['ember', '#f0922e'],
               ['ocean', '#38bdf8'],
               ['violet', '#a78bfa'],
-              ['rose', '#fb7185'],
               ['emerald', '#34d399'],
             ] as Array<[string, string]>).map(([id, color]) => (
               <button
@@ -169,24 +169,28 @@ export default function SettingsPage() {
             <span className="text-xs text-ink-400 w-8 tabular-nums">{Math.round(s.recommendationIntensity * 100)}%</span>
           </div>
         </Row>
-        <Row label="Preferred languages" note="Pinned languages get boosted everywhere.">
-          <div className="flex flex-wrap gap-1.5 max-w-xs justify-end">
-            {LANGUAGES.slice(0, 8).map((l) => (
+        <div className="py-3.5 border-b border-ink-800">
+          <p className="text-sm font-medium">Preferred languages</p>
+          <p className="text-xs text-ink-400 mt-0.5 mb-3">Pinned languages get boosted everywhere.</p>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map((l) => (
               <Chip key={l.id} active={s.pinnedLanguages.includes(l.id)} onClick={() => s.togglePinnedLanguage(l.id)}>
                 {l.label}
               </Chip>
             ))}
           </div>
-        </Row>
-        <Row label="Muted languages" note="Never recommended. Manage all on the Languages page.">
-          <div className="flex flex-wrap gap-1.5 max-w-xs justify-end">
-            {LANGUAGES.slice(0, 8).map((l) => (
+        </div>
+        <div className="py-3.5">
+          <p className="text-sm font-medium">Muted languages</p>
+          <p className="text-xs text-ink-400 mt-0.5 mb-3">Never recommended anywhere.</p>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map((l) => (
               <Chip key={l.id} active={s.mutedLanguages.includes(l.id)} tone="danger" onClick={() => s.toggleMutedLanguage(l.id)}>
                 {l.label}
               </Chip>
             ))}
           </div>
-        </Row>
+        </div>
       </Section>
 
       {isNativePlatform() && (

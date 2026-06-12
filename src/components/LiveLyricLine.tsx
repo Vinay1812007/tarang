@@ -26,13 +26,13 @@ export function LiveLyricLine({ lines, onOpen }: { lines: LrcLine[]; onOpen: () 
   return (
     <button
       onClick={onOpen}
-      className="w-full text-left mt-3 px-4 py-3 rounded-2xl bg-ink-950/30 hover:bg-ink-950/45 transition-colors"
+      className="w-full text-left mt-3 px-4 py-3.5 rounded-2xl bg-ink-950/30 hover:bg-ink-950/45 transition-colors"
       aria-label="Open lyrics"
     >
-      <p className={cn('text-base font-bold leading-snug transition-all', current ? 'text-ember-300' : 'text-ink-300')}>
+      <p className={cn('text-xl font-extrabold leading-snug transition-all', current ? 'text-ember-300' : 'text-ink-300')}>
         {current ?? '♪'}
       </p>
-      {upcoming && <p className="text-sm text-ink-300/70 leading-snug mt-1 truncate">{upcoming}</p>}
+      {upcoming && <p className="text-base text-ink-300/70 leading-snug mt-1.5 truncate">{upcoming}</p>}
     </button>
   );
 }

@@ -40,7 +40,7 @@ export interface SettingsState {
 
 const defaults = {
   theme: 'dark' as const,
-  accent: 'ember',
+  accent: 'crimson',
   autoplay: true,
   autoqueueSimilar: true,
   keepScreenOn: true,

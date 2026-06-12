@@ -6,25 +6,30 @@
   color-scheme: dark;
   /* Surface scale (dark). The light theme inverts this scale below, so every
      component theme-switches cleanly without per-component overrides. */
-  --ink-950: 7 9 15;
-  --ink-900: 11 14 20;
-  --ink-850: 16 20 29;
-  --ink-800: 21 26 38;
-  --ink-700: 30 36 51;
-  --ink-600: 42 50 69;
-  --ink-400: 91 102 125;
-  --ink-300: 139 149 170;
-  --ink-200: 185 192 208;
-  --ink-100: 230 233 240;
-  /* Accent themes — swapped at runtime via html[data-accent] */
-  --ember-600: 217 122 31;
-  --ember-500: 240 146 46;
-  --ember-400: 247 169 79;
-  --ember-300: 255 201 126;
-  --tide-500: 45 212 191;
-  --tide-400: 94 234 212;
+  --ink-950: 10 7 20;
+  --ink-900: 15 11 30;
+  --ink-850: 21 16 41;
+  --ink-800: 28 22 53;
+  --ink-700: 39 31 71;
+  --ink-600: 55 45 96;
+  --ink-400: 110 100 145;
+  --ink-300: 152 144 182;
+  --ink-200: 196 190 216;
+  --ink-100: 237 234 246;
+  /* Accent themes — swapped at runtime via html[data-accent].
+     Default: crimson — hot red-pink on violet-black. */
+  --ember-600: 225 29 72;
+  --ember-500: 251 59 94;
+  --ember-400: 253 107 133;
+  --ember-300: 253 164 180;
+  --tide-500: 34 211 238;
+  --tide-400: 103 232 249;
 }
 
+html[data-accent='ember'] {
+  --ember-600: 217 122 31; --ember-500: 240 146 46; --ember-400: 247 169 79; --ember-300: 255 201 126;
+  --tide-500: 45 212 191; --tide-400: 94 234 212;
+}
 html[data-accent='ocean'] {
   --ember-600: 2 132 199; --ember-500: 56 189 248; --ember-400: 125 211 252; --ember-300: 186 230 253;
   --tide-500: 52 211 153; --tide-400: 110 231 183;
