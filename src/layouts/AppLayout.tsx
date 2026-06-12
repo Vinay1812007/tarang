@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { MobileBackBar } from '@/components/MobileBackBar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { Toasts } from '@/components/Toasts';
+import { DiagBanner } from '@/components/DiagBanner';
 import { OnboardingSheet } from '@/components/OnboardingSheet';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { UpdateDialog } from '@/components/UpdateDialog';
@@ -108,6 +109,7 @@ export function AppLayout() {
         <Sidebar />
         <main ref={mainRef} className="flex-1 overflow-y-auto px-4 md:px-8 pt-4 pb-44 md:pb-28">
           <MobileBackBar />
+          <DiagBanner />
           <ErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <div key={pathname} className="animate-fade-up">

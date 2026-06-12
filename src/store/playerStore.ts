@@ -10,7 +10,7 @@ import {
   updatePositionState,
 } from '@/services/media-session';
 import { recordComplete, recordPlay, recordQueueAdd, recordSkip } from '@/services/personalization/updater';
-import { checkNotificationOnFirstPlay, haptic } from '@/services/native';
+import { checkNotificationOnFirstPlay, haptic, isNativePlatform } from '@/services/native';
 import { toast } from './toastStore';
 import { useHistoryStore } from './historyStore';
 import { useSettingsStore } from './settingsStore';
@@ -59,6 +59,29 @@ export interface PlayerState {
 
 const SKIP_THRESHOLD = 0.3;
 let engineInitialized = false;
+let bridgeChecked = false;
+
+/** If no native setPlaybackState ever succeeds, surface it — loudly. */
+function scheduleBridgeCheck(): void {
+  if (!isNativePlatform() || bridgeChecked) return;
+  bridgeChecked = true;
+  window.setTimeout(() => {
+    void Promise.all([
+      import('@/services/media-session'),
+      import('./diagStore'),
+    ]).then(([{ getMediaSessionLog }, { useDiagStore }]) => {
+      const log = getMediaSessionLog();
+      const healthy = log.some((e) => e.ok && e.call.startsWith('setPlaybackState'));
+      if (!healthy) {
+        const env = log.find((e) => e.call.startsWith('env'));
+        const lastErr = log.find((e) => !e.ok);
+        useDiagStore.getState().setNotice(
+          `Media notification bridge issue — screenshot this: ${env?.call ?? 'env unknown'}${lastErr ? ` | ${lastErr.call}: ${lastErr.detail ?? 'failed'}` : ' | no native call succeeded'}`,
+        );
+      }
+    });
+  }, 8000);
+}
 /** Session-scoped played set: smart shuffle avoids repeats until exhausted. */
 const sessionPlayed = new Set<string>();
 
@@ -84,6 +107,7 @@ export const usePlayerStore = create<PlayerState>()(
           useHistoryStore.getState().addPlay(song);
           // Android 13+: the playback notification needs this permission.
           void checkNotificationOnFirstPlay(toast);
+          scheduleBridgeCheck();
           // Re-assert after the native service finishes binding — first-play
           // updates can otherwise race the service connection.
           window.setTimeout(() => {
