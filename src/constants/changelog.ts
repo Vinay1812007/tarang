@@ -1,5 +1,9 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.10.2': [
+    '🔔 Rebuilt the Android build pipeline for reliable playback notifications',
+    '🧪 Deeper notification diagnostics in Settings',
+  ],
   '1.10.1': [
     '🔔 Notification now always shows song title, artist, and artwork',
     '🛠 Hardened the native media layer against artwork download failures',

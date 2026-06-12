@@ -27,6 +27,20 @@ const native = isNativePlatform();
 let pluginPromise: Promise<NativePlugin> | null = null;
 let failureReported = false;
 
+// First log line answers the one question that explains everything: does this
+// module believe it is running natively, and is the plugin actually reachable?
+void (async () => {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    record(
+      `env: platform=${Capacitor.getPlatform()} native=${native} pluginAvailable=${Capacitor.isPluginAvailable('MediaSession')}`,
+      native && Capacitor.isPluginAvailable('MediaSession'),
+    );
+  } catch (err) {
+    record('env-check', false, String(err));
+  }
+})();
+
 export interface MediaSessionLogEntry {
   ts: number;
   call: string;
