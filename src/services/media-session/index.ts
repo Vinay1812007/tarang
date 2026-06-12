@@ -1,5 +1,6 @@
 import type { Song } from '@/types';
 import { bestImage } from '@/utils/images';
+import { artworkDataUrl } from '@/utils/artwork';
 import { isNativePlatform } from '@/services/native';
 
 export interface MediaHandlers {
@@ -105,19 +106,26 @@ export function updateMediaMetadata(song: Song | null): void {
         artist: song.subtitle,
         album: song.album?.name ?? 'VinaX',
       };
-      try {
-        await p.setMetadata({
-          ...base,
-          artwork: [{ src: bestImage(song.images, 500), sizes: '500x500', type: 'image/jpeg' }],
-        });
-        record('setMetadata', true);
-      } catch (err) {
-        // Artwork download can fail natively (CDN/network) — never lose the
-        // title/artist because of a missing image.
-        record('setMetadata(artwork)', false, String(err));
-        await p.setMetadata(base);
-        record('setMetadata(no-art)', true);
+      const artUrl = bestImage(song.images, 500);
+      // Decode artwork in the WebView (reliable) and hand native a base64
+      // data URI — its HttpURLConnection fetch is flaky on some networks.
+      const dataUri = await artworkDataUrl(artUrl).catch(() => null);
+      // IMPORTANT: artwork must ALWAYS be present — the plugin NPEs on a
+      // missing artwork key (call.getArray("artwork") == null → .toList()).
+      const attempts: Array<{ label: string; artwork: Array<{ src: string; sizes?: string; type?: string }> }> = [];
+      if (dataUri) attempts.push({ label: 'base64-art', artwork: [{ src: dataUri, sizes: '256x256', type: 'image/jpeg' }] });
+      attempts.push({ label: 'url-art', artwork: [{ src: artUrl, sizes: '500x500', type: 'image/jpeg' }] });
+      attempts.push({ label: 'no-art', artwork: [] });
+      for (const attempt of attempts) {
+        try {
+          await p.setMetadata({ ...base, artwork: attempt.artwork });
+          record(`setMetadata(${attempt.label})`, true);
+          return;
+        } catch (err) {
+          record(`setMetadata(${attempt.label})`, false, String(err));
+        }
       }
+      reportNativeFailure(new Error('all setMetadata attempts failed'));
     }).catch((err) => {
       record('setMetadata', false, String(err));
       reportNativeFailure(err);
@@ -169,5 +177,32 @@ export function updatePositionState(duration: number, position: number, rate: nu
     navigator.mediaSession.setPositionState({ duration, position, playbackRate: rate });
   } catch {
     /* transient invalid states */
+  }
+}
+
+/**
+ * On-device self-test: pushes dummy metadata + "playing" state straight to
+ * the native session for ~6 seconds. If the notification appears with
+ * "VinaX Test Tone", the native pipeline works end-to-end and any remaining
+ * issue is in playback wiring; if not, the device blocks the service.
+ */
+export async function runNotificationSelfTest(): Promise<boolean> {
+  if (!native) return false;
+  try {
+    const p = await plugin();
+    await p.setMetadata({ title: 'VinaX Test Tone', artist: 'Notification self-test', album: 'VinaX', artwork: [] });
+    await p.setPlaybackState({ playbackState: 'playing' });
+    await p.setPositionState({ duration: 60, position: 6, playbackRate: 1 });
+    record('selfTest(start)', true);
+    window.setTimeout(() => {
+      void plugin().then(async (pp) => {
+        await pp.setPlaybackState({ playbackState: 'paused' });
+        record('selfTest(end)', true);
+      }).catch(() => undefined);
+    }, 6000);
+    return true;
+  } catch (err) {
+    record('selfTest', false, String(err));
+    return false;
   }
 }

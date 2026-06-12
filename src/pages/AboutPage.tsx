@@ -15,7 +15,7 @@ export default function AboutPage() {
         <img src="/icons/icon.svg" alt="" className="w-16 h-16 rounded-2xl" />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">VinaX</h1>
-          <p className="text-sm text-ink-400">Music tuned to you · v1.8.0</p>
+          <p className="text-sm text-ink-400">Music tuned to you · v1.8.1</p>
         </div>
         <button
           onClick={() => void shareLink('/', 'VinaX — music tuned to you').then((r) => r === 'copied' && toast('Link copied'))}

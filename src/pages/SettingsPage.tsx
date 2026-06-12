@@ -16,7 +16,7 @@ import { COUNTRIES, REGIONS } from '@/constants/regions';
 import { ensureNotificationPermission, isNativePlatform, mediaSessionAvailable } from '@/services/native';
 import { checkForUpdate } from '@/services/update';
 import { useUpdateStore } from '@/store/updateStore';
-import { getMediaSessionLog } from '@/services/media-session';
+import { getMediaSessionLog, runNotificationSelfTest } from '@/services/media-session';
 import { toast } from '@/store/toastStore';
 import { LANGUAGES } from '@/constants/languages';
 import { Chip } from '@/components/Chip';
@@ -221,6 +221,18 @@ export default function SettingsPage() {
                 </button>
               )}
             </div>
+          </Row>
+          <Row label="Notification self-test" note="Pushes a 6-second test card to the system — if it appears in your notification shade, the pipeline works.">
+            <button
+              onClick={() =>
+                void runNotificationSelfTest().then((ok) =>
+                  toast(ok ? 'Test sent — check your notification shade' : 'Test failed — see log below'),
+                )
+              }
+              className="px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
+            >
+              Run test
+            </button>
           </Row>
           <div className="py-3">
             <p className="text-sm font-medium mb-1.5">Native call log (newest first)</p>
