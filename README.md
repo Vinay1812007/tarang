@@ -3,6 +3,7 @@
 </p>
 
 <h1 align="center">VinaX</h1>
+<p align="center"><strong>Live:</strong> <a href="https://sirimillavinay.online">sirimillavinay.online</a> · <strong>Android:</strong> <a href="https://update.vinax.sirimillavinay.online">latest APK</a></p>
 <p align="center"><em>Music tuned to you.</em><br/>
 A premium, <strong>no-login</strong> music streaming app — web (Cloudflare Pages) + Android (Capacitor) — with fully <strong>local, explainable</strong> personalization.</p>
 
@@ -135,7 +136,7 @@ cd android && ./gradlew assembleDebug
 Or use the shortcut: `npm run android:debug`.
 
 - Requires JDK 17 and the Android SDK. Capacitor 6 targets **SDK 34 (Android 14)** — `compileSdkVersion`/`targetSdkVersion` 34, `minSdkVersion` 22 — suitable for current Play requirements. Adjust in `android/variables.gradle` after generation if needed.
-- App id `app.tarang.music`, scheme `https` (cleartext disabled).
+- App id `app.tarang.music` (kept intentionally after the VinaX rebrand — changing it would orphan every installed copy), scheme `https` (cleartext disabled).
 
 ## GitHub Actions
 

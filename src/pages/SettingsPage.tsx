@@ -20,7 +20,6 @@ import { getMediaSessionLog, runNotificationSelfTest } from '@/services/media-se
 import { toast } from '@/store/toastStore';
 import { LANGUAGES } from '@/constants/languages';
 import { Chip } from '@/components/Chip';
-import { MoonIcon, SunIcon } from '@/components/Icons';
 import type { AudioQualityPref } from '@/services/audio/engine';
 import { cn } from '@/utils/cn';
 
@@ -98,13 +97,13 @@ export default function SettingsPage() {
           </div>
         </Row>
         <Row label="Theme">
-          <button
-            onClick={() => s.setTheme(s.theme === 'dark' ? 'light' : 'dark')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-ink-600 text-sm hover:border-ink-400"
-          >
-            {s.theme === 'dark' ? <MoonIcon className="w-4 h-4" /> : <SunIcon className="w-4 h-4" />}
-            {s.theme === 'dark' ? 'Dark' : 'Light'}
-          </button>
+          <div className="flex gap-1.5">
+            {(['dark', 'light', 'system'] as const).map((t) => (
+              <Chip key={t} active={s.theme === t} onClick={() => s.setTheme(t)}>
+                {t === 'dark' ? 'Dark' : t === 'light' ? 'Light' : 'System'}
+              </Chip>
+            ))}
+          </div>
         </Row>
         <Row label="Autoplay" note="Start playback immediately when you pick a song.">
           <Toggle on={s.autoplay} onChange={s.setAutoplay} label="Autoplay" />

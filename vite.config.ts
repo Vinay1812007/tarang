@@ -13,13 +13,18 @@ function versionManifest(): Plugin {
     name: 'vinax-version-manifest',
     closeBundle() {
       const out = path.resolve(__dirname, 'dist/version.json');
-      fs.writeFileSync(
-        out,
-        JSON.stringify({
-          version: pkg.version,
-          apk: 'https://update.vinax.sirimillavinay.online/vinax.apk',
-        }),
-      );
+      try {
+        fs.mkdirSync(path.dirname(out), { recursive: true });
+        fs.writeFileSync(
+          out,
+          JSON.stringify({
+            version: pkg.version,
+            apk: 'https://update.vinax.sirimillavinay.online/vinax.apk',
+          }),
+        );
+      } catch (err) {
+        console.error('[vinax-version-manifest] failed to write version.json:', err);
+      }
     },
   };
 }

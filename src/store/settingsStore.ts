@@ -5,7 +5,7 @@ import { KEYS } from '@/constants/storage-keys';
 import type { AudioQualityPref } from '@/services/audio/engine';
 
 export interface SettingsState {
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'system';
   accent: string;
   autoplay: boolean;
   autoqueueSimilar: boolean;
@@ -21,7 +21,7 @@ export interface SettingsState {
   pinnedLanguages: string[];
   mutedLanguages: string[];
 
-  setTheme(theme: 'dark' | 'light'): void;
+  setTheme(theme: 'dark' | 'light' | 'system'): void;
   setAccent(accent: string): void;
   setAutoplay(v: boolean): void;
   setAutoqueueSimilar(v: boolean): void;

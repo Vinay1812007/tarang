@@ -12,6 +12,8 @@ export function installDeterrence(): void {
     if (el.closest('[data-deter-context]')) e.preventDefault();
   });
   document.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
     const combo = (e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase());
     if (combo || e.key === 'F12') e.preventDefault();
   });

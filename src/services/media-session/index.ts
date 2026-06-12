@@ -45,7 +45,7 @@ export function getMediaSessionLog(): MediaSessionLogEntry[] {
 }
 
 function reportNativeFailure(err: unknown): void {
-  if (import.meta.env.DEV) console.warn('[tarang:media-session]', err);
+  if (import.meta.env.DEV) console.warn('[vinax:media-session]', err);
   if (!failureReported) {
     failureReported = true;
     // Surface once — a broken native media session should not be invisible.

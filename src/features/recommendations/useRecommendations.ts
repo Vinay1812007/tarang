@@ -6,7 +6,7 @@ import { useSettingsStore, resolvedRegion } from '@/store/settingsStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useHistoryStore } from '@/store/historyStore';
 
-export function buildContext(): RecommendationContext {
+export function getRecommendationContext(): RecommendationContext {
   const settings = useSettingsStore.getState();
   return {
     profile: loadProfile(),
@@ -27,7 +27,7 @@ export function useRecommendations() {
   const intensity = useSettingsStore((s) => s.recommendationIntensity);
   return useQuery<Mix[]>({
     queryKey: ['mixes', profileStamp(), new Date().getHours(), pinned, muted, intensity],
-    queryFn: () => buildRecommendations(buildContext()),
+    queryFn: () => buildRecommendations(getRecommendationContext()),
     staleTime: 10 * 60_000,
   });
 }

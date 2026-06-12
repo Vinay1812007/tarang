@@ -22,7 +22,7 @@ function fresh(id: string): EndpointHealth {
     successes: 0,
     failures: 0,
     consecutiveFailures: 0,
-    latencyEmaMs: 1200,
+    latencyEmaMs: 600,
     cooldownUntil: 0,
     lastSuccessAt: null,
     lastFailureAt: null,

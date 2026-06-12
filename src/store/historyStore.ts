@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { HistoryEntry, Song } from '@/types';
 import { KEYS } from '@/constants/storage-keys';
 
-const MAX_ENTRIES = 300;
+const MAX_ENTRIES = 150;
 
 export interface HistoryState {
   entries: HistoryEntry[];
@@ -25,7 +25,7 @@ export const useHistoryStore = create<HistoryState>()(
         }),
       markCompleted: (songId) => {
         const entries = [...get().entries];
-        const idx = entries.findIndex((e) => e.song.id === songId);
+        const idx = entries.findIndex((e) => e.song.id === songId && !e.completed);
         if (idx >= 0) entries[idx] = { ...entries[idx], completed: true };
         set({ entries });
       },

@@ -91,7 +91,14 @@ export function bumpArtist(
   now = Date.now(),
 ): void {
   if (!artistId && !artistName) return;
-  const key = artistId || `name:${artistName.toLowerCase()}`;
+  const nameKey = `name:${artistName.toLowerCase()}`;
+  const key = artistId || nameKey;
+  // Wrappers are inconsistent about artist IDs: merge any orphaned name-keyed
+  // affinity into the canonical ID-keyed entry the first time we see the ID.
+  if (artistId && profile.artists[nameKey] && !profile.artists[key]) {
+    profile.artists[key] = { ...profile.artists[nameKey] };
+    delete profile.artists[nameKey];
+  }
   const a = ensureAffinity(profile.artists, key, { ...blank(now), name: artistName });
   a.score = Math.max(0, a.score + delta);
   a.lastTs = now;

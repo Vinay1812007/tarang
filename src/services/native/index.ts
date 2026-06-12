@@ -7,7 +7,7 @@ export const isAndroid = (): boolean => Capacitor.getPlatform() === 'android';
 export const mediaSessionAvailable = (): boolean => Capacitor.isPluginAvailable('MediaSession');
 
 function devLog(...args: unknown[]): void {
-  if (import.meta.env.DEV) console.warn('[tarang:native]', ...args);
+  if (import.meta.env.DEV) console.warn('[vinax:native]', ...args);
 }
 
 /**

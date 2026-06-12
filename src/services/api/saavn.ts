@@ -10,14 +10,13 @@ import {
   unwrap,
 } from './normalize';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const enc = encodeURIComponent;
 
-function listFrom(d: any): unknown[] | null {
+function listFrom(d: unknown): unknown[] | null {
   if (Array.isArray(d)) return d;
-  if (Array.isArray(d?.results)) return d.results;
-  if (Array.isArray(d?.songs)) return d.songs;
+  const obj = d as Record<string, unknown> | null;
+  if (Array.isArray(obj?.results)) return obj.results as unknown[];
+  if (Array.isArray(obj?.songs)) return obj.songs as unknown[];
   return null;
 }
 

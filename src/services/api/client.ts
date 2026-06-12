@@ -33,7 +33,7 @@ export interface OrchestratedRequest<T> {
 }
 
 function devLog(...args: unknown[]): void {
-  if (import.meta.env.DEV) console.warn('[tarang:api]', ...args);
+  if (import.meta.env.DEV) console.debug('[vinax:api]', ...args);
 }
 
 async function fetchJson(url: string, timeoutMs: number): Promise<unknown> {

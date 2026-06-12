@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error): void {
-    if (import.meta.env.DEV) console.error('[tarang:boundary]', error);
+    if (import.meta.env.DEV) console.error('[vinax:boundary]', error);
   }
 
   render() {
@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
 /** Router-level error element. */
 export function RouteError() {
   const error = useRouteError();
-  if (import.meta.env.DEV) console.error('[tarang:route]', error);
+  if (import.meta.env.DEV) console.error('[vinax:route]', error);
   return (
     <div className="h-dvh flex flex-col items-center justify-center gap-4 bg-ink-900 text-ink-100">
       <p className="text-3xl font-bold">Off the beat</p>

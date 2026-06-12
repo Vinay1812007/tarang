@@ -31,11 +31,11 @@ export function useKeyboardShortcuts(): void {
           break;
         case 'ArrowUp':
           e.preventDefault();
-          p.setVolume(p.volume + 0.05);
+          p.setVolume(Math.min(1, p.volume + 0.05));
           break;
         case 'ArrowDown':
           e.preventDefault();
-          p.setVolume(p.volume - 0.05);
+          p.setVolume(Math.max(0, p.volume - 0.05));
           break;
         case 'n':
           p.next(true);

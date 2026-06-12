@@ -77,9 +77,21 @@ export function AppLayout() {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('light', theme === 'light');
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    document.documentElement.dataset.accent = accent;
+    const apply = () => {
+      const resolved =
+        theme === 'system'
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light'
+          : theme;
+      document.documentElement.classList.toggle('light', resolved === 'light');
+      document.documentElement.classList.toggle('dark', resolved === 'dark');
+      document.documentElement.dataset.accent = accent;
+    };
+    apply();
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
   }, [theme, accent]);
 
   return (

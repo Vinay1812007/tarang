@@ -22,6 +22,8 @@ function ctxKey(ctx: RecommendationContext): string {
     ctx.mutedLanguages.join(','),
     Math.round(ctx.intensity * 10),
     ctx.region?.country ?? '',
+    // Decay runs off updatedAt — bucketed so long sessions refresh shelves.
+    Math.floor(ctx.profile.updatedAt / (15 * 60_000)),
   ].join('|');
 }
 
