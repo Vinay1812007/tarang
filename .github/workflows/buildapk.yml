@@ -48,11 +48,11 @@ jobs:
           sed -i "s/versionName \"1.0\"/versionName \"$V\"/" "$G"
           grep -E 'versionCode|versionName' "$G"
 
-      - name: Target SDK 33 (media-session plugin API-34 receiver crash workaround)
+      - name: Set minSdk 23 (match proven-working configuration)
         run: |
           V=android/variables.gradle
-          sed -i 's/targetSdkVersion = 34/targetSdkVersion = 33/' "$V"
-          grep targetSdkVersion "$V"
+          sed -i 's/minSdkVersion = .*/minSdkVersion = 23/' "$V"
+          grep -E 'minSdkVersion|targetSdkVersion' "$V"
 
       - name: Install Tarang launcher icons
         run: |
@@ -80,15 +80,54 @@ jobs:
               'android.permission.FOREGROUND_SERVICE',
               'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
               'android.permission.REQUEST_INSTALL_PACKAGES',
+              'android.permission.ACCESS_NETWORK_STATE',
+              'android.permission.BLUETOOTH_CONNECT',
           ]
           add = ''.join(
               f'    <uses-permission android:name="{p}" />\n'
               for p in perms if p not in s
           )
           s = s.replace('<application', add + '    <application', 1)
+          if 'windowSoftInputMode' not in s:
+              s = s.replace('android:exported="true">',
+                            'android:exported="true"\n            android:windowSoftInputMode="adjustResize">', 1)
           open(path, 'w').write(s)
           print('permissions present:', sum(p in s for p in perms), '/', len(perms))
           PY
+
+      - name: Patch MainActivity (native POST_NOTIFICATIONS request at launch)
+        run: |
+          MAIN=$(find android/app/src/main/java -name 'MainActivity.java' | head -1)
+          PKG=$(grep -m1 '^package' "$MAIN" | sed 's/package \(.*\);/\1/')
+          echo "patching $MAIN (package $PKG)"
+          cat > "$MAIN" <<JAVA
+          package $PKG;
+
+          import android.Manifest;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import android.os.Bundle;
+          import androidx.core.app.ActivityCompat;
+          import androidx.core.content.ContextCompat;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              private static final int REQ_NOTIFY = 4242;
+
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                              != PackageManager.PERMISSION_GRANTED) {
+                          ActivityCompat.requestPermissions(this,
+                                  new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFY);
+                      }
+                  }
+              }
+          }
+          JAVA
+          cat "$MAIN"
 
       - name: Build debug APK
         working-directory: android
