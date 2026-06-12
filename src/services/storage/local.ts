@@ -26,7 +26,7 @@ export function removeLocal(key: string): void {
   }
 }
 
-export function clearAllTarangStorage(): void {
+export function clearAllVinaxStorage(): void {
   try {
     const doomed: string[] = [];
     for (let i = 0; i < window.localStorage.length; i++) {
@@ -39,7 +39,7 @@ export function clearAllTarangStorage(): void {
   }
 }
 
-/** Approximate bytes used by Tarang keys in localStorage. */
+/** Approximate bytes used by VinaX keys in localStorage. */
 export function localStorageUsageBytes(): number {
   let total = 0;
   try {
@@ -62,11 +62,7 @@ export function localStorageUsageBytes(): number {
 export function runMigrations(): void {
   const v = getLocal<number>(KEYS.schemaVersion, 0);
   if (v === CURRENT_SCHEMA_VERSION) return;
-  if (v === 0) {
-    // Fresh install or pre-versioned prototype: nothing to migrate.
-    setLocal(KEYS.schemaVersion, CURRENT_SCHEMA_VERSION);
-    return;
-  }
-  // Future: if (v === 1) { ...migrate to 2... }
+  // v1 → v2: tarang.* → vinax.* key rename. Handled by earlyMigrations.ts
+  // (must run before store rehydration); here we only record the version.
   setLocal(KEYS.schemaVersion, CURRENT_SCHEMA_VERSION);
 }

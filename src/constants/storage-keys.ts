@@ -1,5 +1,5 @@
-/** Single registry of every localStorage key Tarang owns. */
-export const STORAGE_PREFIX = 'tarang';
+/** Single registry of every localStorage key VinaX owns. */
+export const STORAGE_PREFIX = 'vinax';
 
 export const KEYS = {
   schemaVersion: `${STORAGE_PREFIX}.schema-version`,
@@ -13,4 +13,4 @@ export const KEYS = {
   onboarded: `${STORAGE_PREFIX}.onboarded.v1`,
 } as const;
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;

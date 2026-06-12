@@ -1,5 +1,5 @@
 import { KEYS } from '@/constants/storage-keys';
-import { clearAllTarangStorage, getLocal, setLocal } from '@/services/storage/local';
+import { clearAllVinaxStorage, getLocal, setLocal } from '@/services/storage/local';
 import { clearEvents } from '@/services/storage/idb';
 import { resetProfile } from '@/services/personalization/storage';
 import { invalidateRecommendationCache } from '@/services/recommendation/engine';
@@ -32,7 +32,7 @@ export async function clearPersonalization(): Promise<void> {
 
 export async function resetAppState(): Promise<void> {
   await clearEvents();
-  clearAllTarangStorage();
+  clearAllVinaxStorage();
   window.location.assign('/');
 }
 

@@ -1,8 +1,8 @@
 {
-  "name": "tarang",
+  "name": "vinax",
   "private": true,
-  "version": "1.9.0",
-  "description": "Tarang — premium no-login music streaming with local-only personalization.",
+  "version": "1.9.1",
+  "description": "VinaX \u2014 music tuned to you. No login. Private by design.",
   "type": "module",
   "scripts": {
     "dev": "vite",
