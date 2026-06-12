@@ -4,7 +4,8 @@ import { Shelf } from '@/components/Shelf';
 import { MediaCard } from '@/components/MediaCard';
 import { ShelfSkeleton, CardGridSkeleton } from '@/components/Skeletons';
 import { InfiniteSentinel } from '@/components/InfiniteSentinel';
-import { flattenSongPages, useInfiniteSongs } from '@/features/search/useInfiniteSongs';
+import { flattenSongPages } from '@/features/search/useInfiniteSongs';
+import { useUnlimitedFeed } from '@/features/home/useUnlimitedFeed';
 import { Chip } from '@/components/Chip';
 import { GetAppBanner } from '@/components/GetAppBanner';
 import { IconButton } from '@/components/IconButton';
@@ -27,7 +28,7 @@ import { useRegion } from '@/features/location/useRegion';
 import { bestImage } from '@/utils/images';
 import { languageLabel } from '@/constants/languages';
 import { dayPartLabel } from '@/utils/time';
-import { feedSeed, trendingSeed } from '@/constants/seeds';
+import { trendingSeed } from '@/constants/seeds';
 import type { Song } from '@/types';
 
 function SongShelf({ title, explanation, songs, seeAllTo }: { title: string; explanation?: string; songs: Song[]; seeAllTo?: string }) {
@@ -78,7 +79,7 @@ export default function HomePage() {
   const primaryLang = pinned[0] ?? 'hindi';
   const trending = useTrendingForLanguage(primaryLang);
   const playQueueFeed = usePlayerStore((s) => s.playQueue);
-  const feed = useInfiniteSongs(feedSeed(primaryLang));
+  const feed = useUnlimitedFeed();
   const feedSongs = flattenSongPages(feed.data?.pages);
 
   return (
@@ -193,7 +194,7 @@ export default function HomePage() {
       <section className="mt-2">
         <h2 className="text-lg sm:text-xl font-bold tracking-tight">More For You</h2>
         <p className="text-xs text-ink-400 mt-0.5 mb-3">
-          {languageLabel(primaryLang)} picks, ranked by your taste — keep scrolling
+          Picks in your languages, ranked by your taste — scrolls forever
         </p>
         {feed.isLoading && <CardGridSkeleton />}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">

@@ -19,7 +19,9 @@ export interface MediaHandlers {
  *    real MediaSessionService → playback notification with controls, Bluetooth
  *    /headset buttons, audio focus, and lockscreen seek bar.
  */
-type NativePlugin = typeof import('@jofr/capacitor-media-session').MediaSession;
+import { MediaSession as NativeMediaSession } from '@jofr/capacitor-media-session';
+
+type NativePlugin = typeof NativeMediaSession;
 
 const native = isNativePlatform();
 let pluginPromise: Promise<NativePlugin> | null = null;
@@ -56,9 +58,9 @@ function reportNativeFailure(err: unknown): void {
 }
 
 function plugin(): Promise<NativePlugin> {
-  if (!pluginPromise) {
-    pluginPromise = import('@jofr/capacitor-media-session').then((m) => m.MediaSession);
-  }
+  // Static import: the plugin proxy is registered at app start, removing the
+  // chunk-load timing variable from the first native call.
+  if (!pluginPromise) pluginPromise = Promise.resolve(NativeMediaSession);
   return pluginPromise;
 }
 

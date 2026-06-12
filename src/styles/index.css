@@ -4,6 +4,18 @@
 
 :root {
   color-scheme: dark;
+  /* Surface scale (dark). The light theme inverts this scale below, so every
+     component theme-switches cleanly without per-component overrides. */
+  --ink-950: 7 9 15;
+  --ink-900: 11 14 20;
+  --ink-850: 16 20 29;
+  --ink-800: 21 26 38;
+  --ink-700: 30 36 51;
+  --ink-600: 42 50 69;
+  --ink-400: 91 102 125;
+  --ink-300: 139 149 170;
+  --ink-200: 185 192 208;
+  --ink-100: 230 233 240;
   /* Accent themes — swapped at runtime via html[data-accent] */
   --ember-600: 217 122 31;
   --ember-500: 240 146 46;
@@ -32,6 +44,17 @@ html[data-accent='emerald'] {
 
 html.light {
   color-scheme: light;
+  /* Inverted surface scale: backgrounds go light, text goes dark. */
+  --ink-950: 255 255 255;
+  --ink-900: 244 246 250;
+  --ink-850: 233 237 244;
+  --ink-800: 222 228 238;
+  --ink-700: 199 207 222;
+  --ink-600: 160 171 192;
+  --ink-400: 100 112 136;
+  --ink-300: 71 83 105;
+  --ink-200: 51 63 84;
+  --ink-100: 15 22 36;
 }
 
 body {
@@ -41,19 +64,15 @@ body {
 
 /* Visible keyboard focus everywhere, without mouse-click outlines */
 :focus-visible {
-  outline: 2px solid theme('colors.ember.500');
+  outline: 2px solid rgb(var(--ember-500));
   outline-offset: 2px;
   border-radius: 4px;
-}
-
-html.light body {
-  @apply bg-ink-100 text-ink-900;
 }
 
 /* Premium scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: theme('colors.ink.600') transparent;
+  scrollbar-color: rgb(var(--ink-600)) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
@@ -96,10 +115,19 @@ input[type='range']::-moz-range-thumb {
 
 /* ---------- VinaX glass (iOS-style translucent surfaces) ---------- */
 .glass {
-  @apply backdrop-blur-xl bg-ink-850/70 border border-white/10 shadow-lg shadow-black/20;
+  @apply bg-ink-850/95 border border-white/10 shadow-lg shadow-black/20;
 }
 .glass-strong {
-  @apply backdrop-blur-2xl bg-ink-950/70 border-t border-white/10;
+  @apply bg-ink-950/95 border-t border-white/10;
+}
+/* Backdrop blur is GPU-heavy on mobile WebViews — enable only on md+ */
+@media (min-width: 768px) {
+  .glass {
+    @apply backdrop-blur-xl bg-ink-850/70;
+  }
+  .glass-strong {
+    @apply backdrop-blur-2xl bg-ink-950/70;
+  }
 }
 
 /* ---------- Scroll-driven reveal (no JS; safe fallback) ---------- */

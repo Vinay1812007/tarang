@@ -46,7 +46,7 @@ export default function LyricsPage() {
       {!lyrics.isLoading && !songLoading && !lyrics.data && (
         <EmptyState
           title="Lyrics unavailable"
-          message="Neither LRCLIB nor the upstream catalogs have lyrics for this song. Coverage varies by language and label."
+          message="No source has lyrics for this song yet. Coverage varies by language and label."
         />
       )}
 
@@ -74,14 +74,14 @@ export default function LyricsPage() {
             <SyncedLyrics lines={lyrics.data.synced} live={isLive} size={size} />
           </div>
           <p className="text-[11px] text-ink-500 mt-4">
-            Synced lyrics via LRCLIB{isLive ? ' · tap a line to seek' : ' · play this song to follow along live'}
+            Synced lyrics{isLive ? ' · tap a line to seek' : ' · play this song to follow along live'}
           </p>
         </>
       ) : lyrics.data?.plain ? (
         <>
           <pre className={`whitespace-pre-wrap font-sans text-ink-100 ${size === 'sm' ? 'text-base leading-8' : size === 'md' ? 'text-lg leading-9' : 'text-2xl leading-10'}`}>{lyrics.data.plain}</pre>
           <p className="text-[11px] text-ink-500 mt-6">
-            Lyrics via {lyrics.data.source === 'lrclib' ? 'LRCLIB' : 'upstream catalog'}
+            Lyrics from community catalogs
           </p>
         </>
       ) : null}

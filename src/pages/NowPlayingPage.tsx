@@ -293,7 +293,7 @@ export default function NowPlayingPage() {
                 )}
               </div>
               {lyrics.data.synced && (
-                <p className="text-[10px] text-white/50 pt-2">Synced via LRCLIB · tap a line to seek</p>
+                <p className="text-[10px] text-white/50 pt-2">Synced lyrics · tap a line to seek</p>
               )}
             </div>
           </div>

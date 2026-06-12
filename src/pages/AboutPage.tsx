@@ -15,7 +15,7 @@ export default function AboutPage() {
         <img src="/icons/icon.svg" alt="" className="w-16 h-16 rounded-2xl" />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">VinaX</h1>
-          <p className="text-sm text-ink-400">Music tuned to you · v1.9.1</p>
+          <p className="text-sm text-ink-400">Music tuned to you · v1.10.0</p>
         </div>
         <button
           onClick={() => void shareLink('/', 'VinaX — music tuned to you').then((r) => r === 'copied' && toast('Link copied'))}
@@ -48,14 +48,10 @@ export default function AboutPage() {
           product.
         </p>
         <p>
-          Music metadata and streams come from community JioSaavn API wrappers. Availability varies;
-          VinaX continuously health-scores {API_BASES.length} sources and fails over between them:
+          Music metadata and streams come from {API_BASES.length} independent community catalog
+          sources. Availability varies; VinaX continuously health-scores them and fails over
+          automatically so one outage never takes the app down.
         </p>
-        <ul className="list-disc pl-5 space-y-1 text-ink-300">
-          {API_BASES.map((b) => (
-            <li key={b.id}>{b.label}</li>
-          ))}
-        </ul>
         <p className="text-ink-400 text-xs">
           VinaX streams content only — it implements no DRM circumvention and no persistent
           downloading of copyrighted media. Production builds disable source maps as cosmetic

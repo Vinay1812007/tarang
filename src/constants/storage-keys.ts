@@ -11,6 +11,7 @@ export const KEYS = {
   profile: `${STORAGE_PREFIX}.profile.v1`,
   region: `${STORAGE_PREFIX}.region.v1`,
   onboarded: `${STORAGE_PREFIX}.onboarded.v1`,
+  lastSeenVersion: `${STORAGE_PREFIX}.last-seen-version`,
 } as const;
 
 export const CURRENT_SCHEMA_VERSION = 2;

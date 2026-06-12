@@ -1,5 +1,5 @@
-import { Suspense, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Suspense, useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { BottomNav } from '@/components/BottomNav';
 import { MobileBackBar } from '@/components/MobileBackBar';
@@ -9,6 +9,7 @@ import { OnboardingSheet } from '@/components/OnboardingSheet';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { UpdateDialog } from '@/components/UpdateDialog';
 import { FestiveSplash } from '@/components/FestiveSplash';
+import { WhatsNewSheet } from '@/components/WhatsNewSheet';
 import { initAudioOutputWatcher } from '@/services/audio/outputWatcher';
 import { checkForUpdate } from '@/services/update';
 import { useUpdateStore } from '@/store/updateStore';
@@ -25,6 +26,8 @@ import { isNativePlatform, requestNotificationPermissionOnce } from '@/services/
 import { installDeterrence } from '@/utils/deterrence';
 
 export function AppLayout() {
+  const mainRef = useRef<HTMLElement>(null);
+  const navigationType = useNavigationType();
   const theme = useSettingsStore((s) => s.theme);
   const accent = useSettingsStore((s) => s.accent);
   const { pathname } = useLocation();
@@ -76,6 +79,11 @@ export function AppLayout() {
     });
   }, []);
 
+  // Clean navigation: new pages open at the top; browser-back keeps position.
+  useEffect(() => {
+    if (navigationType !== 'POP') mainRef.current?.scrollTo({ top: 0 });
+  }, [pathname, navigationType]);
+
   useEffect(() => {
     const apply = () => {
       const resolved =
@@ -98,7 +106,7 @@ export function AppLayout() {
     <div className="h-dvh flex flex-col overflow-hidden">
       <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto px-4 md:px-8 pt-4 pb-44 md:pb-28">
+        <main ref={mainRef} className="flex-1 overflow-y-auto px-4 md:px-8 pt-4 pb-44 md:pb-28">
           <MobileBackBar />
           <ErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
@@ -114,6 +122,7 @@ export function AppLayout() {
       {!isNativePlatform() && <ShortcutsModal />}
       {isNativePlatform() && <UpdateDialog />}
       <FestiveSplash />
+      <WhatsNewSheet />
       {!isFullScreenPlayer && (
         <div className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]">
           <PlayerBar />

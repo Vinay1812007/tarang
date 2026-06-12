@@ -12,16 +12,16 @@ export default {
     extend: {
       colors: {
         ink: {
-          950: '#07090f',
-          900: '#0b0e14',
-          850: '#10141d',
-          800: '#151a26',
-          700: '#1e2433',
-          600: '#2a3245',
-          400: '#5b667d',
-          300: '#8b95aa',
-          200: '#b9c0d0',
-          100: '#e6e9f0',
+          950: 'rgb(var(--ink-950) / <alpha-value>)',
+          900: 'rgb(var(--ink-900) / <alpha-value>)',
+          850: 'rgb(var(--ink-850) / <alpha-value>)',
+          800: 'rgb(var(--ink-800) / <alpha-value>)',
+          700: 'rgb(var(--ink-700) / <alpha-value>)',
+          600: 'rgb(var(--ink-600) / <alpha-value>)',
+          400: 'rgb(var(--ink-400) / <alpha-value>)',
+          300: 'rgb(var(--ink-300) / <alpha-value>)',
+          200: 'rgb(var(--ink-200) / <alpha-value>)',
+          100: 'rgb(var(--ink-100) / <alpha-value>)',
         },
         ember: {
           600: 'rgb(var(--ember-600) / <alpha-value>)',

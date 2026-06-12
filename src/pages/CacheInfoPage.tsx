@@ -71,7 +71,7 @@ export default function CacheInfoPage() {
           <tbody>
             {health.map((h) => (
               <tr key={h.id} className="border-t border-ink-800">
-                <td className="px-4 py-2.5 font-medium">{h.id}</td>
+                <td className="px-4 py-2.5 font-medium">{`Source ${health.indexOf(h) + 1}`}</td>
                 <td className="px-4 py-2.5 text-right text-tide-400 tabular-nums">{h.successes}</td>
                 <td className="px-4 py-2.5 text-right text-ember-400 tabular-nums">{h.failures}</td>
                 <td className="px-4 py-2.5 text-right tabular-nums">{Math.round(h.latencyEmaMs)}ms</td>
