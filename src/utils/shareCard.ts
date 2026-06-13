@@ -28,7 +28,7 @@ export async function shareNowPlayingCard(song: Song): Promise<'shared' | 'downl
     ctx.fillRect(0, 0, size, size);
 
     // Artwork (rounded).
-    const art = await loadImage(artUrl).catch(() => null);
+    const art = await loadArtwork(artUrl);
     const pad = 110;
     const artSize = size - pad * 2;
     if (art) {
@@ -132,10 +132,27 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = reject;
-    // Cache-buster forces a fresh CORS-headed request, avoiding a tainted
-    // copy cached from a plain <img> elsewhere in the app.
-    img.src = src + (src.includes('?') ? '&' : '?') + '_c=1';
+    img.src = src;
   });
+}
+
+/**
+ * Loads artwork into a NON-tainting source: a same-origin Cloudflare image
+ * proxy on web, or a base64 data URI via CapacitorHttp on native. Returns
+ * null on any failure so the card still renders (without art).
+ */
+async function loadArtwork(url: string): Promise<HTMLImageElement | null> {
+  try {
+    if (isNativePlatform()) {
+      const { CapacitorHttp } = await import('@capacitor/core');
+      const res = await CapacitorHttp.get({ url, responseType: 'blob' });
+      if (res.status !== 200 || typeof res.data !== 'string') return null;
+      return await loadImage(`data:image/jpeg;base64,${res.data}`);
+    }
+    return await loadImage(`/img?url=${encodeURIComponent(url)}`);
+  } catch {
+    return null;
+  }
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {

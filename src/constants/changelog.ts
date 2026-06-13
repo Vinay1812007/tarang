@@ -1,5 +1,8 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.16.2': [
+    '🖼 Share-as-image now embeds real album art (via a CORS-safe image proxy)',
+  ],
   '1.16.1': [
     '🖼 Fixed “Share as image” — now works reliably on web and Android',
     '🔍 Search box and tabs stay pinned while results scroll',
