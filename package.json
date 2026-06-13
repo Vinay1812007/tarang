@@ -1,7 +1,7 @@
 {
   "name": "vinax",
   "private": true,
-  "version": "1.16.4",
+  "version": "1.16.5",
   "description": "VinaX — music tuned to you. No login. Private by design.",
   "type": "module",
   "scripts": {

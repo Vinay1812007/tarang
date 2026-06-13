@@ -1,5 +1,8 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.16.5': [
+    '🧹 Removed the Share-as-image feature',
+  ],
   '1.16.3': [
     '🖼 Share-as-image fixed for good — falls back gracefully and always produces a card',
     '🌐 10 more languages: Odia, Assamese, Rajasthani, Konkani, Maithili, Nepali, Sanskrit, Tulu, Dogri, Kashmiri',

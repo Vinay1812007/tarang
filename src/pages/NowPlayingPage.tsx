@@ -34,7 +34,6 @@ import { Visualizer } from '@/components/Visualizer';
 import { useLibraryStore } from '@/store/libraryStore';
 import { haptic } from '@/services/native';
 import { shareLink } from '@/utils/share';
-import { shareNowPlayingCard } from '@/utils/shareCard';
 import { toast } from '@/store/toastStore';
 import { cn } from '@/utils/cn';
 
@@ -243,27 +242,11 @@ export default function NowPlayingPage() {
           </button>
           <div className="flex items-center gap-1">
             <IconButton
-              label="Share link"
+              label="Share"
               size="sm"
               onClick={() => void shareLink(`/song/${song.id}`, song.title).then((r) => r === 'copied' && toast('Link copied'))}
             >
               <ShareIcon className="w-4 h-4" />
-            </IconButton>
-            <IconButton
-              label="Share as image"
-              size="sm"
-              onClick={() =>
-                void shareNowPlayingCard(song).then((r) => {
-                  if (r === 'downloaded') toast('Card saved');
-                  else if (r === 'failed') toast('Couldn’t create card');
-                })
-              }
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                <rect x="3" y="3" width="18" height="18" rx="3" />
-                <circle cx="9" cy="9" r="2" />
-                <path d="M21 15l-5-5L5 21" />
-              </svg>
             </IconButton>
             <IconButton label="More options" size="sm" onClick={() => setShowMore((v) => !v)} active={showMore}>
               <ClockIcon className="w-4 h-4" />
