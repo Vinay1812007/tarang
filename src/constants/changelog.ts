@@ -1,5 +1,8 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.16.6': [
+    '🖼 Share-as-image is back',
+  ],
   '1.16.5': [
     '🧹 Removed the Share-as-image feature',
   ],
