@@ -18,6 +18,7 @@ import {
   useTrendingForLanguage,
 } from '@/features/home/useHomeShelves';
 import { useYourArtists } from '@/features/home/useYourArtists';
+import { useDailyMix } from '@/features/home/useDailyMix';
 import { playArtist } from '@/features/player/playEntity';
 import { letterAvatar } from '@/utils/avatar';
 import { useRecommendations } from '@/features/recommendations/useRecommendations';
@@ -73,6 +74,7 @@ export default function HomePage() {
   const weekMinutes = Math.round(weekEntries.reduce((acc, e) => acc + (e.song.duration ?? 180), 0) / 60);
   const continueListening = useContinueListening();
   const yourArtists = useYourArtists();
+  const daily = useDailyMix();
   const favorites = useLibraryStore((s) => s.favorites);
   const timeShelf = useTimeOfDayShelf();
   const mixes = useRecommendations();
@@ -149,6 +151,12 @@ export default function HomePage() {
       </div>
 
       <SongShelf title="Continue Listening" explanation="Pick up where you left off" songs={continueListening} seeAllTo="/history" />
+
+      {daily.isLoading ? (
+        <ShelfSkeleton />
+      ) : (
+        <SongShelf title="VinaX Daily" explanation="A fresh mix for today, built from your taste" songs={daily.data ?? []} />
+      )}
 
       {yourArtists.length >= 3 && (
         <Shelf title="Your Artists" explanation="The voices you keep coming back to">

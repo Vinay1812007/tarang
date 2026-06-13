@@ -1,5 +1,11 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.14.0': [
+    '🎚 Crossfade — songs blend smoothly into each other (toggle in Settings)',
+    '😴 Sleep timer now fades out gently instead of cutting off',
+    '🖼 Share any song as a beautiful image card',
+    '📅 VinaX Daily — a fresh personalized mix every morning, on Home',
+  ],
   '1.12.0': [
     '🔔 Rebuilt the playback notification from scratch — VinaX\'s own native media service',
     '🎛 Lockscreen + Bluetooth/headset controls, Play/Pause/Prev/Next/Stop',

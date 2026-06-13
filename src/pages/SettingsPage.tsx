@@ -114,6 +114,9 @@ export default function SettingsPage() {
         <Row label="Keep screen on in player" note="Holds a screen wake lock while the full-screen player is open and playing.">
           <Toggle on={s.keepScreenOn} onChange={s.setKeepScreenOn} label="Keep screen on in player" />
         </Row>
+        <Row label="Crossfade" note="Smoothly fade between tracks and fade new songs in.">
+          <Toggle on={s.crossfade} onChange={s.setCrossfade} label="Crossfade" />
+        </Row>
         <Row label="App version" note={isNativePlatform() ? 'Checks the website for a newer signed APK.' : 'Web version updates automatically on deploy.'}>
           <div className="flex items-center gap-2">
             <span className="text-sm text-ink-300 tabular-nums">v{__APP_VERSION__}</span>

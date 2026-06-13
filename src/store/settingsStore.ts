@@ -10,6 +10,7 @@ export interface SettingsState {
   autoplay: boolean;
   autoqueueSimilar: boolean;
   keepScreenOn: boolean;
+  crossfade: boolean;
   audioQuality: AudioQualityPref;
   /** 0..1 — how aggressively recommendations personalize. */
   recommendationIntensity: number;
@@ -26,6 +27,7 @@ export interface SettingsState {
   setAutoplay(v: boolean): void;
   setAutoqueueSimilar(v: boolean): void;
   setKeepScreenOn(v: boolean): void;
+  setCrossfade(v: boolean): void;
   setAudioQuality(q: AudioQualityPref): void;
   setRecommendationIntensity(v: number): void;
   setAllowRegionInference(v: boolean): void;
@@ -44,6 +46,7 @@ const defaults = {
   autoplay: true,
   autoqueueSimilar: true,
   keepScreenOn: true,
+  crossfade: true,
   audioQuality: 'high' as AudioQualityPref,
   recommendationIntensity: 0.7,
   allowRegionInference: true,
@@ -63,6 +66,7 @@ export const useSettingsStore = create<SettingsState>()(
       setAutoplay: (autoplay) => set({ autoplay }),
       setAutoqueueSimilar: (autoqueueSimilar) => set({ autoqueueSimilar }),
       setKeepScreenOn: (keepScreenOn) => set({ keepScreenOn }),
+      setCrossfade: (crossfade) => set({ crossfade }),
       setAudioQuality: (audioQuality) => set({ audioQuality }),
       setRecommendationIntensity: (v) =>
         set({ recommendationIntensity: Math.min(1, Math.max(0, v)) }),

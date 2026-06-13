@@ -84,6 +84,9 @@ function scheduleBridgeCheck(): void {
 }
 /** Session-scoped played set: smart shuffle avoids repeats until exhausted. */
 const sessionPlayed = new Set<string>();
+const CROSSFADE_SEC = 5;
+let crossfadeArmed = false;
+let sleepTimer: number | null = null;
 /** Song ids we've already tried to refetch fresh URLs for (avoid loops). */
 const refetchedSongs = new Set<string>();
 let lastUnavailableToastAt = 0;
@@ -103,6 +106,8 @@ export const usePlayerStore = create<PlayerState>()(
       function startTrack(song: Song, autoplay: boolean): void {
         const quality = useSettingsStore.getState().audioQuality;
         audioEngine.load(song, quality, autoplay);
+        crossfadeArmed = false;
+        if (autoplay && useSettingsStore.getState().crossfade) audioEngine.fadeIn(1200);
         updateMediaMetadata(song);
         if (autoplay) {
           sessionPlayed.add(song.id);
@@ -220,6 +225,21 @@ export const usePlayerStore = create<PlayerState>()(
             onTime: (currentTime, duration) => {
               set({ currentTime, duration });
               updatePositionState(duration, currentTime, get().rate);
+              // Crossfade tail: ramp the last seconds toward silence; the next
+              // track fades in on start, giving a smooth overlap-style blend.
+              const { repeat, queue, index } = get();
+              const hasNext = repeat === 'all' || index < queue.length - 1;
+              if (
+                useSettingsStore.getState().crossfade &&
+                !crossfadeArmed &&
+                hasNext &&
+                repeat !== 'one' &&
+                duration > CROSSFADE_SEC * 2 &&
+                duration - currentTime <= CROSSFADE_SEC
+              ) {
+                crossfadeArmed = true;
+                audioEngine.fadeOut((duration - currentTime) * 1000);
+              }
             },
             onPlayState: (isPlaying) => {
               set({ isPlaying });
@@ -458,11 +478,25 @@ export const usePlayerStore = create<PlayerState>()(
         toggleShuffle: () => set({ shuffle: !get().shuffle }),
 
         setSleepTimer: (minutes) => {
+          if (sleepTimer != null) {
+            window.clearTimeout(sleepTimer);
+            sleepTimer = null;
+          }
           set({ sleepAt: minutes == null ? null : Date.now() + minutes * 60_000, sleepAfterTrack: false });
-          if (minutes != null) toast(`Sleeping in ${minutes} min`);
+          if (minutes != null) {
+            toast(`Sleeping in ${minutes} min`);
+            sleepTimer = window.setTimeout(() => {
+              // Gentle 8s fade to silence, then pause.
+              audioEngine.fadeOutAndPause(8000, () => {
+                set({ isPlaying: false, sleepAt: null });
+                toast('Sleep timer: paused');
+              });
+            }, minutes * 60_000);
+          }
         },
 
         setSleepAfterTrack: (v) => {
+          if (sleepTimer != null) { window.clearTimeout(sleepTimer); sleepTimer = null; }
           set({ sleepAfterTrack: v, sleepAt: null });
           if (v) toast('Will stop after this song');
         },

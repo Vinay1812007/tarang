@@ -129,8 +129,62 @@ class AudioEngine {
     if (this.el && Number.isFinite(seconds)) this.el.currentTime = Math.max(0, seconds);
   }
 
+  /** User-intended volume; fades animate el.volume toward this. */
+  private targetVolume = 1;
+  private fadeTimer: number | null = null;
+
   setVolume(v: number): void {
-    if (this.el) this.el.volume = Math.min(1, Math.max(0, v));
+    this.targetVolume = Math.min(1, Math.max(0, v));
+    this.cancelFade();
+    if (this.el) this.el.volume = this.targetVolume;
+  }
+
+  private cancelFade(): void {
+    if (this.fadeTimer != null) {
+      window.clearInterval(this.fadeTimer);
+      this.fadeTimer = null;
+    }
+  }
+
+  /** Ramp el.volume from `from` to `to` over `ms`, then run `done`. */
+  private fade(from: number, to: number, ms: number, done?: () => void): void {
+    if (!this.el) return;
+    this.cancelFade();
+    const steps = Math.max(1, Math.round(ms / 50));
+    let i = 0;
+    this.el.volume = Math.min(1, Math.max(0, from));
+    this.fadeTimer = window.setInterval(() => {
+      i += 1;
+      const t = i / steps;
+      if (this.el) this.el.volume = Math.min(1, Math.max(0, from + (to - from) * t));
+      if (i >= steps) {
+        this.cancelFade();
+        done?.();
+      }
+    }, 50);
+  }
+
+  /** Fade the current track up from silence (crossfade-in on track start). */
+  fadeIn(ms = 1200): void {
+    this.fade(0, this.targetVolume, ms);
+  }
+
+  /** Fade the current track out to silence (crossfade tail). */
+  fadeOut(ms = 1200): void {
+    this.fade(this.el?.volume ?? this.targetVolume, 0, ms);
+  }
+
+  /** Sleep-fade: ramp to silence then pause + callback. */
+  fadeOutAndPause(ms: number, done: () => void): void {
+    if (!this.el) {
+      done();
+      return;
+    }
+    this.fade(this.el.volume, 0, ms, () => {
+      this.el?.pause();
+      if (this.el) this.el.volume = this.targetVolume; // restore for next play
+      done();
+    });
   }
 
   setMuted(m: boolean): void {
