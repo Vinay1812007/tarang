@@ -84,11 +84,17 @@ export async function shareNowPlayingCard(song: Song): Promise<'shared' | 'downl
     if (!blob) return 'failed';
     const file = new File([blob], `vinax-${song.id}.png`, { type: 'image/png' });
 
+    // Each delivery path is independently guarded so a rejection (e.g.
+    // navigator.share in incognito, or a blocked installer) NEVER fails the
+    // whole card — we always fall through to a plain download.
     if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-      await navigator.share({ files: [file], title: song.title, text: `${song.title} — ${song.subtitle}` });
-      return 'shared';
+      try {
+        await navigator.share({ files: [file], title: song.title, text: `${song.title} — ${song.subtitle}` });
+        return 'shared';
+      } catch {
+        /* user cancelled or unsupported — fall through */
+      }
     }
-    // Native: write to cache and open the system share/preview.
     if (isNativePlatform()) {
       try {
         const [{ Filesystem, Directory }, { FileOpener }] = await Promise.all([
@@ -104,13 +110,23 @@ export async function shareNowPlayingCard(song: Song): Promise<'shared' | 'downl
         /* fall through to download */
       }
     }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name;
-    a.click();
-    URL.revokeObjectURL(url);
-    return 'downloaded';
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      a.click();
+      URL.revokeObjectURL(url);
+      return 'downloaded';
+    } catch {
+      // Last resort: open the image in a new tab so the user can long-press/save.
+      try {
+        window.open(canvas.toDataURL('image/png'), '_blank');
+        return 'downloaded';
+      } catch {
+        return 'failed';
+      }
+    }
   } catch {
     return 'failed';
   }

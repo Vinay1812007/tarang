@@ -19,6 +19,16 @@ export const LANGUAGES: LanguageDef[] = [
   { id: 'bhojpuri', label: 'Bhojpuri', locales: ['bho'] },
   { id: 'haryanvi', label: 'Haryanvi', locales: ['bgc'] },
   { id: 'urdu', label: 'Urdu', locales: ['ur'] },
+  { id: 'odia', label: 'Odia', locales: ['or'] },
+  { id: 'assamese', label: 'Assamese', locales: ['as'] },
+  { id: 'rajasthani', label: 'Rajasthani', locales: ['raj'] },
+  { id: 'konkani', label: 'Konkani', locales: ['kok'] },
+  { id: 'maithili', label: 'Maithili', locales: ['mai'] },
+  { id: 'nepali', label: 'Nepali', locales: ['ne'] },
+  { id: 'sanskrit', label: 'Sanskrit', locales: ['sa'] },
+  { id: 'tulu', label: 'Tulu', locales: ['tcy'] },
+  { id: 'dogri', label: 'Dogri', locales: ['doi'] },
+  { id: 'kashmiri', label: 'Kashmiri', locales: ['ks'] },
 ];
 
 export const UNKNOWN_LANGUAGE = 'unknown';
@@ -33,6 +43,7 @@ export function normalizeLanguage(raw: unknown): string | null {
   // common upstream variants
   if (v === 'hindustani') return 'hindi';
   if (v === 'panjabi') return 'punjabi';
+  if (v === 'oriya') return 'odia';
   return UNKNOWN_LANGUAGE;
 }
 

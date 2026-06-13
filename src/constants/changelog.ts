@@ -1,5 +1,9 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.16.3': [
+    '🖼 Share-as-image fixed for good — falls back gracefully and always produces a card',
+    '🌐 10 more languages: Odia, Assamese, Rajasthani, Konkani, Maithili, Nepali, Sanskrit, Tulu, Dogri, Kashmiri',
+  ],
   '1.16.2': [
     '🖼 Share-as-image now embeds real album art (via a CORS-safe image proxy)',
   ],
