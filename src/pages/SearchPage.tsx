@@ -96,15 +96,16 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-5">Search</h1>
-      <div className="relative mb-5">
+      <div className="sticky top-0 z-20 -mx-4 px-4 pt-1 pb-3 bg-ink-900/90 backdrop-blur-md md:-mx-8 md:px-8">
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">Search</h1>
+      <div className="relative">
         <SearchIcon className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-ink-400" />
         <input
           autoFocus
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Songs, albums, artists, playlists…"
-          className="w-full bg-ink-800 border border-ink-600 rounded-2xl pl-12 pr-20 py-3.5 text-sm outline-none focus:border-ember-500"
+          placeholder={listening ? 'Listening…' : 'Songs, albums, artists, playlists…'}
+          className={`w-full bg-ink-800 rounded-2xl pl-12 pr-20 py-3.5 text-sm outline-none border transition-colors ${listening ? 'border-ember-500 ring-2 ring-ember-500/40' : 'border-ink-600 focus:border-ember-500'}`}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
           {input && (
@@ -114,17 +115,31 @@ export default function SearchPage() {
           )}
           {SpeechRec && (
             <button
-              aria-label="Voice search"
+              aria-label={listening ? 'Listening…' : 'Voice search'}
               onClick={startVoice}
-              className={listening ? 'p-1.5 text-ember-400 animate-pulse' : 'p-1.5 text-ink-400 hover:text-ink-100'}
+              className={`relative p-1.5 ${listening ? 'text-ember-400' : 'text-ink-400 hover:text-ink-100'}`}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="w-4 h-4">
+              {listening && (
+                <>
+                  <span className="absolute inset-0 rounded-full bg-ember-500/30 animate-ping" />
+                  <span className="absolute inset-[-6px] rounded-full border border-ember-500/40 animate-pulse" />
+                </>
+              )}
+              <svg viewBox="0 0 24 24" fill={listening ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="relative w-4 h-4">
                 <rect x="9" y="2" width="6" height="12" rx="3" />
                 <path d="M5 10a7 7 0 0014 0M12 17v5" />
               </svg>
             </button>
           )}
         </div>
+      </div>
+      {active && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar mt-3">
+          {TABS.map((t) => (
+            <Chip key={t} active={tab === t} onClick={() => setTab(t)}>{t}</Chip>
+          ))}
+        </div>
+      )}
       </div>
 
       {!active && (
@@ -153,13 +168,7 @@ export default function SearchPage() {
       )}
 
       {active && (
-        <>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5">
-            {TABS.map((t) => (
-              <Chip key={t} active={tab === t} onClick={() => setTab(t)}>{t}</Chip>
-            ))}
-          </div>
-
+        <div className="pt-4">
           {tab === 'All' && (
             <>
               {all.isLoading && <ListSkeleton />}
@@ -273,7 +282,7 @@ export default function SearchPage() {
               {(playlists.data ?? []).map((p) => <MediaCard key={p.id} to={`/playlist/${p.id}`} image={bestImage(p.images)} title={p.title} subtitle={p.subtitle} fluid onPlay={() => void playPlaylist(p.id, p.title)} />)}
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Song } from '@/types';
 import { bestImage } from '@/utils/images';
 import { extractAverageColor } from '@/utils/color';
+import { isNativePlatform } from '@/services/native';
 
 /**
  * Renders a square "now playing" share card (artwork + title + artist + a
@@ -61,13 +62,47 @@ export async function shareNowPlayingCard(song: Song): Promise<'shared' | 'downl
     ctx.font = '700 32px system-ui, sans-serif';
     ctx.fillText('VinaX', pad, size - 70);
 
-    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png', 0.92));
+    let blob = await safeToBlob(canvas);
+    if (!blob) {
+      // Canvas likely tainted by a non-CORS artwork — redraw text-only.
+      const c2 = document.createElement('canvas');
+      c2.width = size; c2.height = size;
+      const x2 = c2.getContext('2d');
+      if (!x2) return 'failed';
+      x2.fillStyle = grad; x2.fillRect(0, 0, size, size);
+      x2.fillStyle = '#ffffff';
+      x2.font = '700 58px system-ui, sans-serif';
+      x2.fillText(truncate(x2, song.title, size - pad * 2), pad, size / 2);
+      x2.fillStyle = 'rgba(255,255,255,0.7)';
+      x2.font = '400 38px system-ui, sans-serif';
+      x2.fillText(truncate(x2, song.subtitle, size - pad * 2), pad, size / 2 + 58);
+      x2.fillStyle = 'rgba(255,255,255,0.55)';
+      x2.font = '700 32px system-ui, sans-serif';
+      x2.fillText('VinaX', pad, size - 70);
+      blob = await safeToBlob(c2);
+    }
     if (!blob) return 'failed';
     const file = new File([blob], `vinax-${song.id}.png`, { type: 'image/png' });
 
     if (navigator.canShare?.({ files: [file] }) && navigator.share) {
       await navigator.share({ files: [file], title: song.title, text: `${song.title} — ${song.subtitle}` });
       return 'shared';
+    }
+    // Native: write to cache and open the system share/preview.
+    if (isNativePlatform()) {
+      try {
+        const [{ Filesystem, Directory }, { FileOpener }] = await Promise.all([
+          import('@capacitor/filesystem'),
+          import('@capacitor-community/file-opener'),
+        ]);
+        const dataUrl = canvas.toDataURL('image/png');
+        await Filesystem.writeFile({ path: file.name, data: dataUrl.split(',')[1], directory: Directory.Cache });
+        const { uri } = await Filesystem.getUri({ path: file.name, directory: Directory.Cache });
+        await FileOpener.open({ filePath: uri, contentType: 'image/png' });
+        return 'shared';
+      } catch {
+        /* fall through to download */
+      }
     }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -81,13 +116,25 @@ export async function shareNowPlayingCard(song: Song): Promise<'shared' | 'downl
   }
 }
 
+function safeToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
+  return new Promise((res) => {
+    try {
+      canvas.toBlob((b) => res(b), 'image/png', 0.92);
+    } catch {
+      res(null); // SecurityError on tainted canvas
+    }
+  });
+}
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = reject;
-    img.src = src;
+    // Cache-buster forces a fresh CORS-headed request, avoiding a tainted
+    // copy cached from a plain <img> elsewhere in the app.
+    img.src = src + (src.includes('?') ? '&' : '?') + '_c=1';
   });
 }
 

@@ -1,5 +1,10 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.16.1': [
+    '🖼 Fixed “Share as image” — now works reliably on web and Android',
+    '🔍 Search box and tabs stay pinned while results scroll',
+    '🎙 Voice search shows a clear listening animation',
+  ],
   '1.16.0': [
     '✨ New Aurora look — living ambient background + 4 new accent themes (Sunset, Aurora, Mono…)',
     '🚗 Drive Mode — huge, simple controls for the road',
