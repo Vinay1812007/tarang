@@ -38,7 +38,6 @@ jobs:
 
       - name: Verify plugins
         run: |
-          [ -d node_modules/@jofr/capacitor-media-session ] || { echo "media-session MISSING"; exit 1; }
           [ -d node_modules/@capacitor/app ] || { echo "@capacitor/app MISSING"; exit 1; }
           [ -d node_modules/@capacitor/local-notifications ] || { echo "local-notifications MISSING"; exit 1; }
 
