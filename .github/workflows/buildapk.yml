@@ -30,9 +30,6 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Patch media-session plugin (metadata must survive artwork failures)
-        run: python3 scripts/patch-media-session-plugin.py
-
       - name: Scaffold Android
         run: |
           if [ ! -d android ]; then
@@ -44,6 +41,19 @@ jobs:
           [ -d node_modules/@jofr/capacitor-media-session ] || { echo "media-session MISSING"; exit 1; }
           [ -d node_modules/@capacitor/app ] || { echo "@capacitor/app MISSING"; exit 1; }
           [ -d node_modules/@capacitor/local-notifications ] || { echo "local-notifications MISSING"; exit 1; }
+
+      - name: Install native media service (VinaX's own MediaSession)
+        run: |
+          PKGDIR=$(dirname "$(find android/app/src/main/java -name MainActivity.java | head -1)")
+          PKG=$(grep -m1 '^package' "$PKGDIR/MainActivity.java" | sed 's/package \(.*\);/\1/')
+          echo "installing native media into $PKGDIR (package $PKG)"
+          for f in native-android/VinaxMediaPlugin.java native-android/VinaxMediaService.java; do
+            sed "s/__PKG__/$PKG/" "$f" > "$PKGDIR/$(basename "$f")"
+          done
+          # androidx.media (MediaSessionCompat + MediaStyle + MediaButtonReceiver)
+          grep -q "androidx.media:media" android/app/build.gradle || \
+            sed -i 's|dependencies {|dependencies {\n    implementation "androidx.media:media:1.7.0"|' android/app/build.gradle
+          ls "$PKGDIR"
 
       - name: Install VinaX launcher icons
         run: |
@@ -57,7 +67,7 @@ jobs:
         run: |
           P=android/app/src/main/assets/capacitor.plugins.json
           cat "$P"
-          for plugin in MediaSession LocalNotifications Haptics; do
+          for plugin in LocalNotifications Haptics; do
             grep -q "$plugin" "$P" || { echo "::error::$plugin missing from $P"; exit 1; }
           done
 
@@ -69,6 +79,9 @@ jobs:
           fi
           if ! grep -q 'windowSoftInputMode' "$MAN"; then
             sed -i 's|android:exported="true">|android:exported="true"\n            android:windowSoftInputMode="adjustResize">|' "$MAN"
+          fi
+          if ! grep -q 'VinaxMediaService' "$MAN"; then
+            sed -i 's|</application>|    <service android:name=".VinaxMediaService" android:exported="false" android:foregroundServiceType="mediaPlayback" />\n    <receiver android:name="androidx.media.session.MediaButtonReceiver" android:exported="true">\n        <intent-filter><action android:name="android.intent.action.MEDIA_BUTTON" /></intent-filter>\n    </receiver>\n</application>|' "$MAN"
           fi
           grep -c uses-permission "$MAN"
 
@@ -90,6 +103,7 @@ jobs:
               private static final int REQ_NOTIFY = 4242;
               @Override
               public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(VinaxMediaPlugin.class);
                   super.onCreate(savedInstanceState);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                       if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -123,7 +137,7 @@ jobs:
         run: |
           M=$(find android/app/build/intermediates/merged_manifests -name AndroidManifest.xml | head -1)
           echo "merged manifest: $M"
-          for needle in MediaSessionService POST_NOTIFICATIONS FOREGROUND_SERVICE_MEDIA_PLAYBACK WAKE_LOCK mediaPlayback; do
+          for needle in VinaxMediaService POST_NOTIFICATIONS FOREGROUND_SERVICE_MEDIA_PLAYBACK WAKE_LOCK mediaPlayback; do
             grep -q "$needle" "$M" || { echo "::error::$needle missing from merged manifest"; exit 1; }
             echo "OK: $needle"
           done

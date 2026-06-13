@@ -1,5 +1,10 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.12.0': [
+    '🔔 Rebuilt the playback notification from scratch — VinaX\'s own native media service',
+    '🎛 Lockscreen + Bluetooth/headset controls, Play/Pause/Prev/Next/Stop',
+    '📱 Works across Android 8, 12, and 13+',
+  ],
   '1.11.0': [
     '🔔 Playback notification fix for Xiaomi/HyperOS devices (main-thread media updates)',
     '🎨 New look: deep violet-black surfaces with a hot crimson accent, lyric-forward player',

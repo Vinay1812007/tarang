@@ -1,3 +1,4 @@
+import { registerPlugin } from '@capacitor/core';
 import type { Song } from '@/types';
 import { bestImage } from '@/utils/images';
 import { artworkDataUrl } from '@/utils/artwork';
@@ -11,36 +12,6 @@ export interface MediaHandlers {
   seekTo(seconds: number): void;
 }
 
-/**
- * Two backends behind one façade:
- *  - Web: the browser's Media Session API (lockscreen/hardware keys where the
- *    browser supports it).
- *  - Native (Capacitor Android): @jofr/capacitor-media-session, which runs a
- *    real MediaSessionService → playback notification with controls, Bluetooth
- *    /headset buttons, audio focus, and lockscreen seek bar.
- */
-import { MediaSession as NativeMediaSession } from '@jofr/capacitor-media-session';
-
-type NativePlugin = typeof NativeMediaSession;
-
-const native = isNativePlatform();
-let pluginPromise: Promise<NativePlugin> | null = null;
-let failureReported = false;
-
-// First log line answers the one question that explains everything: does this
-// module believe it is running natively, and is the plugin actually reachable?
-void (async () => {
-  try {
-    const { Capacitor } = await import('@capacitor/core');
-    record(
-      `env: platform=${Capacitor.getPlatform()} native=${native} pluginAvailable=${Capacitor.isPluginAvailable('MediaSession')}`,
-      native && Capacitor.isPluginAvailable('MediaSession'),
-    );
-  } catch (err) {
-    record('env-check', false, String(err));
-  }
-})();
-
 export interface MediaSessionLogEntry {
   ts: number;
   call: string;
@@ -48,54 +19,56 @@ export interface MediaSessionLogEntry {
   detail?: string;
 }
 
-const log: MediaSessionLogEntry[] = [];
+/** VinaX's own native plugin (android/native-android/VinaxMediaPlugin.java). */
+interface VinaxMediaPlugin {
+  setMetadata(o: { title: string; artist: string; album: string; artwork: string }): Promise<void>;
+  setPlaybackState(o: { playbackState: 'playing' | 'paused' | 'none' }): Promise<void>;
+  setPosition(o: { duration: number; position: number; playbackRate: number }): Promise<void>;
+  stop(): Promise<void>;
+  addListener(
+    event: 'action',
+    cb: (data: { action: string; seekTime?: number }) => void,
+  ): Promise<{ remove: () => void }>;
+}
 
+const native = isNativePlatform();
+const VinaxMedia = native ? registerPlugin<VinaxMediaPlugin>('VinaxMedia') : null;
+
+const log: MediaSessionLogEntry[] = [];
 function record(call: string, ok: boolean, detail?: string): void {
   log.push({ ts: Date.now(), call, ok, detail });
   if (log.length > 12) log.shift();
 }
-
-/** Last native media-session call results — surfaced in Settings diagnostics. */
 export function getMediaSessionLog(): MediaSessionLogEntry[] {
   return [...log].reverse();
 }
 
-function reportNativeFailure(err: unknown): void {
-  if (import.meta.env.DEV) console.warn('[vinax:media-session]', err);
-  if (!failureReported) {
-    failureReported = true;
-    // Surface once — a broken native media session should not be invisible.
-    void import('@/store/toastStore').then(({ toast }) =>
-      toast('Media controls unavailable on this device'),
+void (async () => {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    record(
+      `env: platform=${Capacitor.getPlatform()} native=${native} pluginAvailable=${Capacitor.isPluginAvailable('VinaxMedia')}`,
+      native && Capacitor.isPluginAvailable('VinaxMedia'),
     );
+  } catch (err) {
+    record('env-check', false, String(err));
   }
-}
-
-function plugin(): Promise<NativePlugin> {
-  // Static import: the plugin proxy is registered at app start, removing the
-  // chunk-load timing variable from the first native call.
-  if (!pluginPromise) pluginPromise = Promise.resolve(NativeMediaSession);
-  return pluginPromise;
-}
+})();
 
 const webSupported = (): boolean => typeof navigator !== 'undefined' && 'mediaSession' in navigator;
 
 export function setMediaHandlers(h: MediaHandlers): void {
-  if (native) {
-    void plugin().then(async (p) => {
-      await p.setActionHandler({ action: 'play' }, () => h.play());
-      await p.setActionHandler({ action: 'pause' }, () => h.pause());
-      await p.setActionHandler({ action: 'nexttrack' }, () => h.next());
-      await p.setActionHandler({ action: 'previoustrack' }, () => h.prev());
-      await p.setActionHandler({ action: 'seekto' }, (d) => {
-        if (d.seekTime != null) h.seekTo(d.seekTime);
-      });
-      await p.setActionHandler({ action: 'stop' }, () => h.pause());
-      record('setActionHandlers', true);
-    }).catch((err) => {
-      record('setActionHandlers', false, String(err));
-      reportNativeFailure(err);
-    });
+  if (native && VinaxMedia) {
+    void VinaxMedia.addListener('action', (d) => {
+      switch (d.action) {
+        case 'play': h.play(); break;
+        case 'pause': h.pause(); break;
+        case 'nexttrack': h.next(); break;
+        case 'previoustrack': h.prev(); break;
+        case 'stop': h.pause(); break;
+        case 'seekto': if (d.seekTime != null) h.seekTo(d.seekTime); break;
+      }
+    }).then(() => record('addListener(action)', true)).catch((e) => record('addListener', false, String(e)));
     return;
   }
   if (!webSupported()) return;
@@ -105,47 +78,28 @@ export function setMediaHandlers(h: MediaHandlers): void {
     ms.setActionHandler('pause', () => h.pause());
     ms.setActionHandler('nexttrack', () => h.next());
     ms.setActionHandler('previoustrack', () => h.prev());
-    ms.setActionHandler('seekto', (e) => {
-      if (e.seekTime != null) h.seekTo(e.seekTime);
-    });
+    ms.setActionHandler('seekto', (e) => { if (e.seekTime != null) h.seekTo(e.seekTime); });
   } catch {
-    /* per-browser handler support varies */
+    /* per-browser support varies */
   }
 }
 
 export function updateMediaMetadata(song: Song | null): void {
-  if (native) {
+  if (native && VinaxMedia) {
     if (!song) return;
-    void plugin().then(async (p) => {
-      const base = {
-        title: song.title,
-        artist: song.subtitle,
-        album: song.album?.name ?? 'VinaX',
-      };
-      const artUrl = bestImage(song.images, 500);
-      // Decode artwork in the WebView (reliable) and hand native a base64
-      // data URI — its HttpURLConnection fetch is flaky on some networks.
-      const dataUri = await artworkDataUrl(artUrl).catch(() => null);
-      // IMPORTANT: artwork must ALWAYS be present — the plugin NPEs on a
-      // missing artwork key (call.getArray("artwork") == null → .toList()).
-      const attempts: Array<{ label: string; artwork: Array<{ src: string; sizes?: string; type?: string }> }> = [];
-      if (dataUri) attempts.push({ label: 'base64-art', artwork: [{ src: dataUri, sizes: '256x256', type: 'image/jpeg' }] });
-      attempts.push({ label: 'url-art', artwork: [{ src: artUrl, sizes: '500x500', type: 'image/jpeg' }] });
-      attempts.push({ label: 'no-art', artwork: [] });
-      for (const attempt of attempts) {
-        try {
-          await p.setMetadata({ ...base, artwork: attempt.artwork });
-          record(`setMetadata(${attempt.label})`, true);
-          return;
-        } catch (err) {
-          record(`setMetadata(${attempt.label})`, false, String(err));
-        }
-      }
-      reportNativeFailure(new Error('all setMetadata attempts failed'));
-    }).catch((err) => {
-      record('setMetadata', false, String(err));
-      reportNativeFailure(err);
-    });
+    const artUrl = bestImage(song.images, 500);
+    void artworkDataUrl(artUrl)
+      .catch(() => null)
+      .then((dataUri) =>
+        VinaxMedia.setMetadata({
+          title: song.title,
+          artist: song.subtitle,
+          album: song.album?.name ?? 'VinaX',
+          artwork: dataUri ?? '',
+        }),
+      )
+      .then(() => record('setMetadata', true))
+      .catch((e) => record('setMetadata', false, String(e)));
     return;
   }
   if (!webSupported()) return;
@@ -160,32 +114,23 @@ export function updateMediaMetadata(song: Song | null): void {
 }
 
 export function updatePlaybackState(playing: boolean): void {
-  if (native) {
-    void plugin()
-      .then((p) =>
-        p.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })
-          .then(() => record(`setPlaybackState(${playing ? 'playing' : 'paused'})`, true)),
-      )
-      .catch((err) => {
-        record('setPlaybackState', false, String(err));
-        reportNativeFailure(err);
-      });
+  if (native && VinaxMedia) {
+    void VinaxMedia.setPlaybackState({ playbackState: playing ? 'playing' : 'paused' })
+      .then(() => record(`setPlaybackState(${playing ? 'playing' : 'paused'})`, true))
+      .catch((e) => record('setPlaybackState', false, String(e)));
     return;
   }
   if (!webSupported()) return;
   navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
 }
 
-// Throttle native bridge calls: timeupdate fires ~4×/s, the notification
-// seek bar only needs ~1×/s.
 let lastSentPosition = -10;
-
 export function updatePositionState(duration: number, position: number, rate: number): void {
   if (!(duration > 0) || position > duration) return;
-  if (native) {
+  if (native && VinaxMedia) {
     if (Math.abs(position - lastSentPosition) < 1) return;
     lastSentPosition = position;
-    void plugin().then((p) => p.setPositionState({ duration, position, playbackRate: rate })).catch(reportNativeFailure);
+    void VinaxMedia.setPosition({ duration, position, playbackRate: rate }).catch(() => undefined);
     return;
   }
   if (!webSupported() || !navigator.mediaSession.setPositionState) return;
@@ -196,25 +141,14 @@ export function updatePositionState(duration: number, position: number, rate: nu
   }
 }
 
-/**
- * On-device self-test: pushes dummy metadata + "playing" state straight to
- * the native session for ~6 seconds. If the notification appears with
- * "VinaX Test Tone", the native pipeline works end-to-end and any remaining
- * issue is in playback wiring; if not, the device blocks the service.
- */
 export async function runNotificationSelfTest(): Promise<boolean> {
-  if (!native) return false;
+  if (!native || !VinaxMedia) return false;
   try {
-    const p = await plugin();
-    await p.setMetadata({ title: 'VinaX Test Tone', artist: 'Notification self-test', album: 'VinaX', artwork: [] });
-    await p.setPlaybackState({ playbackState: 'playing' });
-    await p.setPositionState({ duration: 60, position: 6, playbackRate: 1 });
+    await VinaxMedia.setMetadata({ title: 'VinaX Test Tone', artist: 'Notification self-test', album: 'VinaX', artwork: '' });
+    await VinaxMedia.setPlaybackState({ playbackState: 'playing' });
     record('selfTest(start)', true);
     window.setTimeout(() => {
-      void plugin().then(async (pp) => {
-        await pp.setPlaybackState({ playbackState: 'paused' });
-        record('selfTest(end)', true);
-      }).catch(() => undefined);
+      void VinaxMedia.setPlaybackState({ playbackState: 'paused' }).catch(() => undefined);
     }, 6000);
     return true;
   } catch (err) {

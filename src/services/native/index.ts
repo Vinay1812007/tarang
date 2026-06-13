@@ -4,7 +4,7 @@ export const isNativePlatform = (): boolean => Capacitor.isNativePlatform();
 export const isAndroid = (): boolean => Capacitor.getPlatform() === 'android';
 
 /** True when the native media-session plugin is compiled into this build. */
-export const mediaSessionAvailable = (): boolean => Capacitor.isPluginAvailable('MediaSession');
+export const mediaSessionAvailable = (): boolean => Capacitor.isPluginAvailable('VinaxMedia');
 
 function devLog(...args: unknown[]): void {
   if (import.meta.env.DEV) console.warn('[vinax:native]', ...args);
