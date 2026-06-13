@@ -81,6 +81,9 @@ export default function SettingsPage() {
               ['ocean', '#38bdf8'],
               ['violet', '#a78bfa'],
               ['emerald', '#34d399'],
+              ['sunset', '#fb923c'],
+              ['aurora', '#818cf8'],
+              ['mono', '#e2e6f0'],
             ] as Array<[string, string]>).map(([id, color]) => (
               <button
                 key={id}
@@ -116,6 +119,21 @@ export default function SettingsPage() {
         </Row>
         <Row label="Crossfade" note="Smoothly fade between tracks and fade new songs in.">
           <Toggle on={s.crossfade} onChange={s.setCrossfade} label="Crossfade" />
+        </Row>
+        <Row label="Resume playback" note="Pick up longer tracks where you left off.">
+          <Toggle on={s.resumePlayback} onChange={s.setResumePlayback} label="Resume playback" />
+        </Row>
+        <Row label="Haptics" note="Subtle vibration on key actions (Android).">
+          <Toggle on={s.haptics} onChange={s.setHaptics} label="Haptics" />
+        </Row>
+        <Row label="Density" note="Comfortable spacing or compact for more on screen.">
+          <div className="flex gap-1.5">
+            {(['comfortable', 'compact'] as const).map((d) => (
+              <Chip key={d} active={s.density === d} onClick={() => s.setDensity(d)}>
+                {d === 'comfortable' ? 'Comfortable' : 'Compact'}
+              </Chip>
+            ))}
+          </div>
         </Row>
         <Row label="App version" note={isNativePlatform() ? 'Checks the website for a newer signed APK.' : 'Web version updates automatically on deploy.'}>
           <div className="flex items-center gap-2">

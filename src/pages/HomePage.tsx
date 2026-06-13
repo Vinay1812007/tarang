@@ -29,6 +29,7 @@ import { useRegion } from '@/features/location/useRegion';
 import { bestImage } from '@/utils/images';
 import { languageLabel } from '@/constants/languages';
 import { dayPartLabel } from '@/utils/time';
+import { getStreak } from '@/utils/streak';
 import { trendingSeed } from '@/constants/seeds';
 import type { Song } from '@/types';
 
@@ -91,7 +92,7 @@ export default function HomePage() {
         <div className="md:hidden flex items-center gap-2.5">
           <img src="/icons/icon.svg" alt="" className="w-9 h-9 rounded-xl" />
           <span className="text-2xl font-bold tracking-tight">
-            VinaX<span className="text-ember-500">.</span>
+            <span className="bg-gradient-to-r from-ember-400 to-tide-400 bg-clip-text text-transparent">VinaX</span><span className="text-ember-500">.</span>
           </span>
         </div>
         <div className="hidden md:block" />
@@ -121,6 +122,7 @@ export default function HomePage() {
           {weekEntries.length > 0 && (
             <span className="text-ink-400"> · this week: {weekEntries.length} plays ≈ {weekMinutes} min</span>
           )}
+          {getStreak() > 1 && <span className="text-ember-400 font-semibold"> · 🔥 {getStreak()}-day streak</span>}
         </p>
         <div className="flex gap-2 mt-4 flex-wrap">
           <button

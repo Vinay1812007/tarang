@@ -59,6 +59,11 @@ export async function checkNotificationOnFirstPlay(notify: (msg: string) => void
 /** Light haptic tick on key interactions (native only, fire-and-forget). */
 export function haptic(style: 'light' | 'medium' = 'light'): void {
   if (!isNativePlatform()) return;
+  try {
+    // Lazy, sync read of the persisted setting to avoid a store import cycle.
+    const raw = window.localStorage.getItem('vinax.settings.v1');
+    if (raw && JSON.parse(raw)?.state?.haptics === false) return;
+  } catch { /* default on */ }
   void (async () => {
     try {
       const { Haptics, ImpactStyle } = await import('@capacitor/haptics');

@@ -11,6 +11,9 @@ export interface SettingsState {
   autoqueueSimilar: boolean;
   keepScreenOn: boolean;
   crossfade: boolean;
+  haptics: boolean;
+  density: 'comfortable' | 'compact';
+  resumePlayback: boolean;
   audioQuality: AudioQualityPref;
   /** 0..1 — how aggressively recommendations personalize. */
   recommendationIntensity: number;
@@ -28,6 +31,9 @@ export interface SettingsState {
   setAutoqueueSimilar(v: boolean): void;
   setKeepScreenOn(v: boolean): void;
   setCrossfade(v: boolean): void;
+  setHaptics(v: boolean): void;
+  setDensity(v: 'comfortable' | 'compact'): void;
+  setResumePlayback(v: boolean): void;
   setAudioQuality(q: AudioQualityPref): void;
   setRecommendationIntensity(v: number): void;
   setAllowRegionInference(v: boolean): void;
@@ -47,6 +53,9 @@ const defaults = {
   autoqueueSimilar: true,
   keepScreenOn: true,
   crossfade: true,
+  haptics: true,
+  density: 'comfortable' as const,
+  resumePlayback: true,
   audioQuality: 'high' as AudioQualityPref,
   recommendationIntensity: 0.7,
   allowRegionInference: true,
@@ -67,6 +76,9 @@ export const useSettingsStore = create<SettingsState>()(
       setAutoqueueSimilar: (autoqueueSimilar) => set({ autoqueueSimilar }),
       setKeepScreenOn: (keepScreenOn) => set({ keepScreenOn }),
       setCrossfade: (crossfade) => set({ crossfade }),
+      setHaptics: (haptics) => set({ haptics }),
+      setDensity: (density) => set({ density }),
+      setResumePlayback: (resumePlayback) => set({ resumePlayback }),
       setAudioQuality: (audioQuality) => set({ audioQuality }),
       setRecommendationIntensity: (v) =>
         set({ recommendationIntensity: Math.min(1, Math.max(0, v)) }),

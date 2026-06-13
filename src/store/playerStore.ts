@@ -85,6 +85,21 @@ function scheduleBridgeCheck(): void {
 /** Session-scoped played set: smart shuffle avoids repeats until exhausted. */
 const sessionPlayed = new Set<string>();
 const CROSSFADE_SEC = 5;
+const RESUME_KEY = 'vinax.resume.v1';
+function loadResume(): Record<string, number> {
+  try { return JSON.parse(window.localStorage.getItem(RESUME_KEY) || '{}'); } catch { return {}; }
+}
+function saveResume(id: string, sec: number, duration: number): void {
+  try {
+    const map = loadResume();
+    // Only remember meaningful mid-track positions on longer tracks.
+    if (duration > 60 && sec > 20 && sec < duration - 20) map[id] = Math.floor(sec);
+    else delete map[id];
+    const ids = Object.keys(map);
+    if (ids.length > 80) delete map[ids[0]];
+    window.localStorage.setItem(RESUME_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
+}
 let crossfadeArmed = false;
 let sleepTimer: number | null = null;
 /** Song ids we've already tried to refetch fresh URLs for (avoid loops). */
@@ -107,12 +122,24 @@ export const usePlayerStore = create<PlayerState>()(
         const quality = useSettingsStore.getState().audioQuality;
         audioEngine.load(song, quality, autoplay);
         crossfadeArmed = false;
+        if (autoplay && useSettingsStore.getState().resumePlayback) {
+          const at = loadResume()[song.id];
+          if (at && at > 20) {
+            window.setTimeout(() => {
+              if (get().queue[get().index]?.id === song.id) {
+                audioEngine.seek(at);
+                toast(`Resumed from ${Math.floor(at / 60)}:${String(Math.floor(at % 60)).padStart(2, '0')}`);
+              }
+            }, 800);
+          }
+        }
         if (autoplay && useSettingsStore.getState().crossfade) audioEngine.fadeIn(1200);
         updateMediaMetadata(song);
         if (autoplay) {
           sessionPlayed.add(song.id);
           recordPlay(song);
           useHistoryStore.getState().addPlay(song);
+          void import('@/utils/streak').then((m) => m.bumpStreak());
           // Android 13+: the playback notification needs this permission.
           void checkNotificationOnFirstPlay(toast);
           scheduleBridgeCheck();
@@ -225,6 +252,8 @@ export const usePlayerStore = create<PlayerState>()(
             onTime: (currentTime, duration) => {
               set({ currentTime, duration });
               updatePositionState(duration, currentTime, get().rate);
+              const playing = get().queue[get().index];
+              if (playing && Math.floor(currentTime) % 5 === 0) saveResume(playing.id, currentTime, duration);
               // Crossfade tail: ramp the last seconds toward silence; the next
               // track fades in on start, giving a smooth overlap-style blend.
               const { repeat, queue, index } = get();

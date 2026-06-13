@@ -46,6 +46,18 @@ html[data-accent='emerald'] {
   --ember-600: 5 150 105; --ember-500: 52 211 153; --ember-400: 110 231 183; --ember-300: 167 243 208;
   --tide-500: 251 191 36; --tide-400: 252 211 77;
 }
+html[data-accent='sunset'] {
+  --ember-600: 234 88 12; --ember-500: 251 146 60; --ember-400: 253 186 116; --ember-300: 254 215 170;
+  --tide-500: 244 114 182; --tide-400: 249 168 212;
+}
+html[data-accent='aurora'] {
+  --ember-600: 99 102 241; --ember-500: 129 140 248; --ember-400: 165 180 252; --ember-300: 199 210 254;
+  --tide-500: 45 212 191; --tide-400: 94 234 212;
+}
+html[data-accent='mono'] {
+  --ember-600: 180 185 200; --ember-500: 226 230 240; --ember-400: 240 242 248; --ember-300: 248 250 252;
+  --tide-500: 148 163 184; --tide-400: 203 213 225;
+}
 
 html.light {
   color-scheme: light;
@@ -120,7 +132,8 @@ input[type='range']::-moz-range-thumb {
 
 /* ---------- VinaX glass (iOS-style translucent surfaces) ---------- */
 .glass {
-  @apply bg-ink-850/95 border border-white/10 shadow-lg shadow-black/20;
+  @apply bg-ink-850/95 border border-white/10 shadow-card;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 40%);
 }
 .glass-strong {
   @apply bg-ink-950/95 border-t border-white/10;
@@ -170,3 +183,6 @@ input[type='range']::-moz-range-thumb {
     animation: none !important;
   }
 }
+
+html[data-density='compact'] main { padding-top: 0.5rem; }
+html[data-density='compact'] .reveal { margin-bottom: 1.25rem; }

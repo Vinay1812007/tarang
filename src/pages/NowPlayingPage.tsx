@@ -30,6 +30,9 @@ import { extractAverageColor } from '@/utils/color';
 import { acquireWakeLock, releaseWakeLock } from '@/utils/wakeLock';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAudioOutputStore } from '@/services/audio/outputWatcher';
+import { Visualizer } from '@/components/Visualizer';
+import { useLibraryStore } from '@/store/libraryStore';
+import { haptic } from '@/services/native';
 import { shareLink } from '@/utils/share';
 import { shareNowPlayingCard } from '@/utils/shareCard';
 import { toast } from '@/store/toastStore';
@@ -126,9 +129,12 @@ export default function NowPlayingPage() {
           <IconButton label="Close" onClick={() => navigate(-1)}>
             <ChevronDownIcon className="w-6 h-6" />
           </IconButton>
-          <button onClick={toggleFullscreen} className="text-center min-w-0 px-2" title="Toggle fullscreen">
-            <span className="block text-[10px] uppercase tracking-[0.18em] text-ink-200/80 font-semibold">Playing from</span>
-            <span className="block text-xs font-bold truncate max-w-[200px]">{playingFrom}</span>
+          <button onClick={toggleFullscreen} className="flex flex-col items-center min-w-0 px-2" title="Toggle fullscreen">
+            <span className="flex items-center gap-2">
+              <Visualizer />
+              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-200/80 font-semibold">Playing from</span>
+            </span>
+            <span className="block text-xs font-bold truncate max-w-[180px]">{playingFrom}</span>
           </button>
           <TrackMenu song={song} />
         </div>
@@ -146,6 +152,14 @@ export default function NowPlayingPage() {
             )}
           />
           <button aria-label="Rewind 10 seconds (double tap)" onDoubleClick={() => doubleSeek(-1)} className="absolute inset-y-0 left-0 w-1/3 rounded-l-2xl" />
+          <button
+            aria-label="Double tap to favorite"
+            onDoubleClick={() => {
+              useLibraryStore.getState().toggleFavorite(song);
+              haptic('medium');
+            }}
+            className="absolute inset-y-0 left-1/3 w-1/3"
+          />
           <button aria-label="Forward 10 seconds (double tap)" onDoubleClick={() => doubleSeek(1)} className="absolute inset-y-0 right-0 w-1/3 rounded-r-2xl" />
         </div>
 
@@ -220,6 +234,12 @@ export default function NowPlayingPage() {
             className="flex items-center gap-1.5 text-xs font-semibold text-ink-300 hover:text-ember-400"
           >
             <SparkleIcon className="w-4 h-4" /> Radio
+          </button>
+          <button
+            onClick={() => navigate('/drive')}
+            className="flex items-center gap-1.5 text-xs font-semibold text-ink-300 hover:text-ember-400"
+          >
+            🚗 Drive
           </button>
           <div className="flex items-center gap-1">
             <IconButton

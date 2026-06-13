@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { MobileBackBar } from '@/components/MobileBackBar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { Toasts } from '@/components/Toasts';
+import { AuroraBackground } from '@/components/AuroraBackground';
 import { DiagBanner } from '@/components/DiagBanner';
 import { OnboardingSheet } from '@/components/OnboardingSheet';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
@@ -31,6 +32,7 @@ export function AppLayout() {
   const navigationType = useNavigationType();
   const theme = useSettingsStore((s) => s.theme);
   const accent = useSettingsStore((s) => s.accent);
+  const density = useSettingsStore((s) => s.density);
   const { pathname } = useLocation();
   const isFullScreenPlayer = pathname === '/now-playing';
   useKeyboardShortcuts();
@@ -96,15 +98,17 @@ export function AppLayout() {
       document.documentElement.classList.toggle('light', resolved === 'light');
       document.documentElement.classList.toggle('dark', resolved === 'dark');
       document.documentElement.dataset.accent = accent;
+      document.documentElement.dataset.density = density;
     };
     apply();
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
-  }, [theme, accent]);
+  }, [theme, accent, density]);
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
+      <AuroraBackground />
       <div className="flex flex-1 min-h-0">
         <Sidebar />
         <main ref={mainRef} className="flex-1 overflow-y-auto px-4 md:px-8 pt-4 pb-44 md:pb-28">

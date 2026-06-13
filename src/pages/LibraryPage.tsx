@@ -37,6 +37,20 @@ export default function LibraryPage() {
         )}
       </section>
 
+      {favorites.length > 0 && (
+        <Shelf title="Recently Added" explanation="Your newest favorites">
+          {favorites.slice(0, 12).map((song) => (
+            <MediaCard
+              key={`recent-${song.id}`}
+              to={`/song/${song.id}`}
+              image={song.images[song.images.length - 1]?.url ?? ''}
+              title={song.title}
+              subtitle={song.subtitle}
+            />
+          ))}
+        </Shelf>
+      )}
+
       {saved.length > 0 && (
         <Shelf title="Saved & Following" explanation="Albums, artists and playlists you keep">
           {saved.map((e) => (
