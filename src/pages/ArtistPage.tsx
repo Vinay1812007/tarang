@@ -11,6 +11,7 @@ import { ErrorState } from '@/components/States';
 import { InfiniteSentinel } from '@/components/InfiniteSentinel';
 import { PlayIcon } from '@/components/Icons';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
+import { SaveButton } from '@/components/SaveButton';
 
 export default function ArtistPage() {
   const { id } = useParams();
@@ -42,6 +43,9 @@ export default function ArtistPage() {
               <PlayIcon className="w-4 h-4" /> Play top songs
             </button>
           )}
+          <div className="mt-3">
+            <SaveButton entity={{ id: artist.id, kind: 'artist', title: artist.name, subtitle: 'Artist', image: bestImage(artist.images, 300) }} />
+          </div>
         </div>
       </div>
 

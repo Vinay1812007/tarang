@@ -16,6 +16,7 @@ export function TrackMenu({ song }: { song: Song }) {
   const { enqueue, enqueueNext, startRadio } = usePlayerStore.getState();
   const collections = useLibraryStore((s) => s.collections);
   const addToCollection = useLibraryStore((s) => s.addToCollection);
+  const toggleHidden = useLibraryStore((s) => s.toggleHidden);
 
   const items: Array<{ label: string; action: () => void } | null> = [
     { label: 'Play next', action: () => enqueueNext(song) },
@@ -34,6 +35,13 @@ export function TrackMenu({ song }: { song: Song }) {
         toast(`Added to ${c.name}`);
       },
     })),
+    {
+      label: 'Not interested',
+      action: () => {
+        toggleHidden(song.id);
+        toast('We’ll show this less');
+      },
+    },
     {
       label: 'Share',
       action: () => void shareLink(`/song/${song.id}`, song.title).then((r) => r === 'copied' && toast('Link copied')),

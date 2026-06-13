@@ -5,6 +5,7 @@ import { rankSongs } from '@/features/search/useSearch';
 import { loadProfile } from '@/services/personalization/storage';
 import { topArtists, topLanguages } from '@/services/personalization/profile';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useLibraryStore } from '@/store/libraryStore';
 import { languageLabel } from '@/constants/languages';
 
 function todaySeed(): string {
@@ -56,7 +57,8 @@ export function useDailyMix() {
           }
         }
       }
-      return seededPick(rankSongs(pool), seed + 'x', 20);
+      const hidden = new Set(useLibraryStore.getState().hiddenSongIds);
+      return seededPick(rankSongs(pool).filter((x) => !hidden.has(x.id)), seed + 'x', 20);
     },
   });
 }

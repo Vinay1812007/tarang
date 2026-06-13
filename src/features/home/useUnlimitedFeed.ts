@@ -3,6 +3,7 @@ import type { Song } from '@/types';
 import { searchSongsPage } from '@/services/api';
 import { rankSongs } from '@/features/search/useSearch';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useLibraryStore } from '@/store/libraryStore';
 import { languageLabel } from '@/constants/languages';
 
 const YEAR = new Date().getFullYear();
@@ -34,7 +35,8 @@ export function useUnlimitedFeed() {
       const upstreamPage = Math.floor(pageParam / combos) + 1;
       const seed = template(languageLabel(language).toLowerCase());
       try {
-        return rankSongs(await searchSongsPage(seed, upstreamPage, 24));
+        const hidden = new Set(useLibraryStore.getState().hiddenSongIds);
+        return rankSongs(await searchSongsPage(seed, upstreamPage, 24)).filter((x) => !hidden.has(x.id));
       } catch {
         return [] as Song[]; // a dead seed never ends the feed
       }

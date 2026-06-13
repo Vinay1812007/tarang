@@ -1,5 +1,10 @@
 /** Per-version highlights — shown once after each update. Keep newest first. */
 export const CHANGELOG: Record<string, string[]> = {
+  '1.15.0': [
+    '💾 Save albums & playlists and follow artists — all in your Library',
+    '🙈 “Not interested” on any song to tune your recommendations',
+    '📚 New “Saved & Following” shelf in Library',
+  ],
   '1.14.0': [
     '🎚 Crossfade — songs blend smoothly into each other (toggle in Settings)',
     '😴 Sleep timer now fades out gently instead of cutting off',

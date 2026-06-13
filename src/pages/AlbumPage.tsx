@@ -7,6 +7,7 @@ import { HeaderSkeleton, ListSkeleton } from '@/components/Skeletons';
 import { EmptyState, ErrorState } from '@/components/States';
 import { PlayIcon, ShareIcon } from '@/components/Icons';
 import { bestImage, FALLBACK_ART } from '@/utils/images';
+import { SaveButton } from '@/components/SaveButton';
 import { shareLink } from '@/utils/share';
 import { languageLabel } from '@/constants/languages';
 
@@ -47,6 +48,7 @@ export default function AlbumPage() {
             <button onClick={() => void shareLink(`/album/${album.id}`, album.title)} aria-label="Share" className="p-2.5 rounded-full border border-ink-600 text-ink-200 hover:border-ink-400">
               <ShareIcon className="w-4 h-4" />
             </button>
+            <SaveButton entity={{ id: album.id, kind: 'album', title: album.title, subtitle: album.subtitle, image: bestImage(album.images, 300) }} />
           </div>
         </div>
       </div>

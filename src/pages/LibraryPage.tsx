@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MediaCard } from '@/components/MediaCard';
+import { Shelf } from '@/components/Shelf';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useHistoryStore } from '@/store/historyStore';
@@ -12,6 +14,7 @@ export default function LibraryPage() {
   usePageTitle('Library');
   const favorites = useLibraryStore((s) => s.favorites);
   const collections = useLibraryStore((s) => s.collections);
+  const saved = useLibraryStore((s) => s.saved);
   const { createCollection, deleteCollection } = useLibraryStore.getState();
   const history = useHistoryStore((s) => s.entries);
   const playQueue = usePlayerStore((s) => s.playQueue);
@@ -33,6 +36,21 @@ export default function LibraryPage() {
           favorites.slice(0, 5).map((song, i) => <SongRow key={song.id} song={song} songs={favorites} index={i} />)
         )}
       </section>
+
+      {saved.length > 0 && (
+        <Shelf title="Saved & Following" explanation="Albums, artists and playlists you keep">
+          {saved.map((e) => (
+            <MediaCard
+              key={`${e.kind}-${e.id}`}
+              to={`/${e.kind}/${e.id}`}
+              image={e.image ?? ''}
+              title={e.title}
+              subtitle={e.kind[0].toUpperCase() + e.kind.slice(1)}
+              round={e.kind === 'artist'}
+            />
+          ))}
+        </Shelf>
+      )}
 
       <section className="mb-10">
         <h2 className="text-lg font-bold mb-3">Collections</h2>

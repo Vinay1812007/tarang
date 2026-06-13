@@ -11,13 +11,28 @@ export interface LocalCollection {
   songs: Song[];
 }
 
+export interface SavedEntity {
+  id: string;
+  kind: 'album' | 'artist' | 'playlist';
+  title: string;
+  subtitle: string;
+  image: string | null;
+  savedAt: number;
+}
+
 export interface LibraryState {
   favorites: Song[];
   collections: LocalCollection[];
+  saved: SavedEntity[];
+  hiddenSongIds: string[];
 
   toggleFavorite(song: Song): void;
   isFavorite(id: string): boolean;
   clearFavorites(): void;
+  toggleSaved(entity: Omit<SavedEntity, 'savedAt'>): void;
+  isSaved(id: string): boolean;
+  toggleHidden(songId: string): void;
+  isHidden(id: string): boolean;
   createCollection(name: string): string;
   deleteCollection(id: string): void;
   addToCollection(collectionId: string, song: Song): void;
@@ -29,6 +44,8 @@ export const useLibraryStore = create<LibraryState>()(
     (set, get) => ({
       favorites: [],
       collections: [],
+      saved: [],
+      hiddenSongIds: [],
       toggleFavorite: (song) => {
         const { favorites } = get();
         const exists = favorites.some((s) => s.id === song.id);
@@ -39,6 +56,25 @@ export const useLibraryStore = create<LibraryState>()(
       },
       isFavorite: (id) => get().favorites.some((s) => s.id === id),
       clearFavorites: () => set({ favorites: [] }),
+      toggleSaved: (entity) => {
+        const { saved } = get();
+        const exists = saved.some((e) => e.id === entity.id && e.kind === entity.kind);
+        set({
+          saved: exists
+            ? saved.filter((e) => !(e.id === entity.id && e.kind === entity.kind))
+            : [{ ...entity, savedAt: Date.now() }, ...saved],
+        });
+      },
+      isSaved: (id) => get().saved.some((e) => e.id === id),
+      toggleHidden: (songId) => {
+        const { hiddenSongIds } = get();
+        set({
+          hiddenSongIds: hiddenSongIds.includes(songId)
+            ? hiddenSongIds.filter((i) => i !== songId)
+            : [songId, ...hiddenSongIds].slice(0, 500),
+        });
+      },
+      isHidden: (id) => get().hiddenSongIds.includes(id),
       createCollection: (name) => {
         const id = `col-${Date.now().toString(36)}`;
         set({
