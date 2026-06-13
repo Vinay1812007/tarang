@@ -75,6 +75,7 @@ class AudioEngine {
     this.sources = orderedSources(song, pref);
     this.sourceIdx = 0;
     this.wantAutoplay = autoplay;
+    this.wantAutoplay = autoplay;
     if (this.sources.length === 0) {
       this.cb?.onFatalError(song.id);
       return;
@@ -105,6 +106,15 @@ class AudioEngine {
       this.cb?.onBuffering(false);
       this.cb?.onFatalError(this.song.id);
     }
+  }
+
+  /** Retry the current song with freshly-fetched URLs (details refetch). */
+  reloadWithSources(urls: string[]): boolean {
+    if (!this.el || !this.song || urls.length === 0) return false;
+    this.sources = urls;
+    this.sourceIdx = 0;
+    this.applySource();
+    return true;
   }
 
   play(): void {

@@ -84,6 +84,9 @@ function scheduleBridgeCheck(): void {
 }
 /** Session-scoped played set: smart shuffle avoids repeats until exhausted. */
 const sessionPlayed = new Set<string>();
+/** Song ids we've already tried to refetch fresh URLs for (avoid loops). */
+const refetchedSongs = new Set<string>();
+let lastUnavailableToastAt = 0;
 
 export const usePlayerStore = create<PlayerState>()(
   persist(
@@ -154,6 +157,16 @@ export const usePlayerStore = create<PlayerState>()(
         return fresh.length > 0;
       }
 
+      function skipUnavailable(): void {
+        const now = Date.now();
+        if (now - lastUnavailableToastAt > 3000) {
+          lastUnavailableToastAt = now;
+          toast('Skipping unavailable track');
+        }
+        if (get().queue.length > 1) get().next(false);
+        else set({ isPlaying: false, isBuffering: false });
+      }
+
       function handleEnded(): void {
         const { queue, index, duration, repeat, sleepAt, sleepAfterTrack } = get();
         const song = queue[index];
@@ -218,10 +231,28 @@ export const usePlayerStore = create<PlayerState>()(
             },
             onBuffering: (isBuffering) => set({ isBuffering }),
             onEnded: handleEnded,
-            onFatalError: () => {
-              toast('Stream unavailable — skipping');
-              if (get().queue.length > 1) get().next(false);
-              else set({ isPlaying: false, isBuffering: false });
+            onFatalError: (songId) => {
+              // Search-result download URLs are sometimes stale/empty. Before
+              // giving up, fetch the song's detail record for fresh URLs and
+              // retry once. Only skip (with a single, debounced toast) if that
+              // also fails.
+              const cur = get().queue[get().index];
+              if (cur && cur.id === songId && !refetchedSongs.has(songId)) {
+                refetchedSongs.add(songId);
+                void import('@/services/api')
+                  .then(({ getSong }) => getSong(songId))
+                  .then((fresh) => {
+                    const urls = orderedSources(fresh, useSettingsStore.getState().audioQuality);
+                    if (urls.length && get().queue[get().index]?.id === songId) {
+                      const ok = audioEngine.reloadWithSources(urls);
+                      if (ok) return;
+                    }
+                    skipUnavailable();
+                  })
+                  .catch(() => skipUnavailable());
+                return;
+              }
+              skipUnavailable();
             },
           });
           const { volume, muted, rate } = get();
