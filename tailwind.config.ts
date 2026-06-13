@@ -37,6 +37,27 @@ export default {
       fontFamily: {
         sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Noto Sans', 'sans-serif'],
       },
+      fontSize: {
+        // VinaX type scale — expressive display sizes, compact metadata.
+        'display': ['2rem', { lineHeight: '2.25rem', letterSpacing: '-0.02em', fontWeight: '800' }],
+        'title': ['1.375rem', { lineHeight: '1.75rem', letterSpacing: '-0.01em', fontWeight: '700' }],
+        'meta': ['0.8125rem', { lineHeight: '1.125rem' }],
+      },
+      borderRadius: {
+        card: '1rem',
+        sheet: '1.5rem',
+      },
+      boxShadow: {
+        // Soft, premium elevation — never harsh.
+        card: '0 4px 20px -4px rgba(0,0,0,0.35)',
+        float: '0 8px 30px -6px rgba(0,0,0,0.45)',
+        glow: '0 0 40px -8px rgb(var(--ember-500) / 0.35)',
+      },
+      transitionTimingFunction: {
+        vinax: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+      minHeight: { touch: '44px' },
+      minWidth: { touch: '44px' },
       keyframes: {
         shimmer: {
           '0%': { backgroundPosition: '-400px 0' },

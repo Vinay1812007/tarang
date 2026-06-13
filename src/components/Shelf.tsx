@@ -15,7 +15,7 @@ export function Shelf({ title, explanation, seeAllTo, action, children }: Props)
     <section className="mb-8 reveal">
       <div className="flex items-end justify-between mb-3 gap-3">
         <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight truncate">{title}</h2>
+          <h2 className="text-title truncate">{title}</h2>
           {explanation && <p className="text-xs text-ink-400 mt-0.5 truncate">{explanation}</p>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
