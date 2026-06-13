@@ -28,7 +28,7 @@ export default function LanguagesPage() {
   usePageTitle('Languages');
   const pinned = useSettingsStore((s) => s.pinnedLanguages);
   const muted = useSettingsStore((s) => s.mutedLanguages);
-  const { togglePinnedLanguage, toggleMutedLanguage } = useSettingsStore.getState();
+  const { togglePinnedLanguage, toggleMutedLanguage, setPinnedLanguages, setMutedLanguages } = useSettingsStore.getState();
 
   return (
     <div className="max-w-screen-2xl mx-auto">
@@ -37,7 +37,28 @@ export default function LanguagesPage() {
         Pin languages to boost them everywhere; mute to hide them from recommendations. Your mix can blend several.
       </p>
 
-      <div className="mb-3 text-sm font-semibold text-ink-300">Pin (tap) — pinned glow amber</div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-semibold text-ink-300">Pin (tap) — pinned glow amber</span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setPinnedLanguages(LANGUAGES.map((l) => l.id));
+              setMutedLanguages([]);
+            }}
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-ember-500 text-ink-950 hover:bg-ember-400 min-h-touch"
+          >
+            All languages
+          </button>
+          {pinned.length > 0 && (
+            <button
+              onClick={() => setPinnedLanguages([])}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-ink-600 text-ink-200 hover:border-ink-400 min-h-touch"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2 mb-6">
         {LANGUAGES.map((l) => (
           <Chip key={l.id} active={pinned.includes(l.id)} onClick={() => togglePinnedLanguage(l.id)}>

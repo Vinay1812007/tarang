@@ -43,6 +43,7 @@ export interface SettingsState {
   togglePinnedLanguage(id: string): void;
   toggleMutedLanguage(id: string): void;
   setPinnedLanguages(ids: string[]): void;
+  setMutedLanguages(ids: string[]): void;
   resetSettings(): void;
 }
 
@@ -101,6 +102,7 @@ export const useSettingsStore = create<SettingsState>()(
         set({ mutedLanguages: muted, pinnedLanguages: pinnedLanguages.filter((l) => l !== id) });
       },
       setPinnedLanguages: (pinnedLanguages) => set({ pinnedLanguages }),
+      setMutedLanguages: (mutedLanguages) => set({ mutedLanguages }),
       resetSettings: () => set({ ...defaults }),
     }),
     { name: KEYS.settings, storage: createJSONStorage(() => window.localStorage) },
