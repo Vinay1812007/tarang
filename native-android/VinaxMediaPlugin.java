@@ -30,6 +30,14 @@ public class VinaxMediaPlugin extends Plugin {
         notifyListeners("action", data);
     }
 
+    /** Called by the service on a lockscreen/Bluetooth seek. */
+    public void emitSeek(double seconds) {
+        JSObject data = new JSObject();
+        data.put("action", "seekto");
+        data.put("seekTime", seconds);
+        notifyListeners("action", data);
+    }
+
     private void startService(Intent intent) {
         intent.setClass(getContext(), VinaxMediaService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -75,12 +75,7 @@ public class VinaxMediaService extends Service {
             @Override public void onSkipToPrevious() { relay("previoustrack"); }
             @Override public void onStop() { relay("stop"); }
             @Override public void onSeekTo(long pos) {
-                if (plugin != null) {
-                    com.getcapacitor.JSObject d = new com.getcapacitor.JSObject();
-                    d.put("action", "seekto");
-                    d.put("seekTime", pos / 1000.0);
-                    plugin.notifyListeners("action", d);
-                }
+                if (plugin != null) plugin.emitSeek(pos / 1000.0);
             }
         });
         session.setActive(true);
@@ -187,9 +182,7 @@ public class VinaxMediaService extends Service {
 
         b.setStyle(new MediaStyle()
                 .setMediaSession(session.getSessionToken())
-                .setShowActionsInCompactView(0, 1, 2)
-                .setShowCancelButton(true)
-                .setCancelButtonPendingIntent(pi(ACTION_STOP)));
+                .setShowActionsInCompactView(0, 1, 2));
         return b.build();
     }
 
